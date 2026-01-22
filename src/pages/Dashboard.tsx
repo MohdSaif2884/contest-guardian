@@ -12,12 +12,15 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ContestCard from "@/components/dashboard/ContestCard";
 import StatCard from "@/components/dashboard/StatCard";
 import ReminderSettings from "@/components/dashboard/ReminderSettings";
+import AlarmNotification from "@/components/alarm/AlarmNotification";
+import { useAlarm } from "@/hooks/useAlarm";
 
 // Mock data
 const upcomingContests = [
@@ -76,9 +79,27 @@ const sidebarItems = [
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm } = useAlarm();
+
+  // Get time until for alarm display
+  const getTimeUntilDisplay = () => {
+    if (!alarmState.currentAlarm) return "Now";
+    const offsetMins = alarmState.currentAlarm.offsetMinutes;
+    if (offsetMins === 0) return "Starting Now! 🚀";
+    return `${offsetMins} min remaining`;
+  };
 
   return (
     <div className="min-h-screen bg-background dark">
+      {/* Alarm Notification Modal */}
+      <AlarmNotification
+        contestName={alarmState.currentAlarm?.contestName || "Contest"}
+        platform={alarmState.currentAlarm?.platform || "Platform"}
+        timeUntil={getTimeUntilDisplay()}
+        isOpen={alarmState.isRinging}
+        onDismiss={dismissAlarm}
+        onSnooze={() => snoozeAlarm(5)}
+      />
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/5 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
@@ -187,6 +208,31 @@ const Dashboard = () => {
           {/* Dashboard View */}
           {activeTab === "dashboard" && (
             <>
+              {/* Test Alarm Button - Prominent */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 glass-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+              >
+                <div>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Volume2 className="h-5 w-5 text-primary" />
+                    In-App Alarm
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Test how the alarm will sound on your phone when contest time comes
+                  </p>
+                </div>
+                <Button
+                  variant="hero"
+                  onClick={() => triggerAlarm("Codeforces Round #924", "Codeforces", "10 min")}
+                  className="gap-2 shrink-0"
+                >
+                  <Bell className="h-4 w-4" />
+                  Test Alarm 🔔
+                </Button>
+              </motion.div>
+
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
@@ -212,6 +258,7 @@ const Dashboard = () => {
                   trend={{ value: "-50% vs last month", positive: true }}
                 />
               </div>
+
 
               {/* Upcoming Contests */}
               <div>
