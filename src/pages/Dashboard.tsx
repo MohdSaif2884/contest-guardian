@@ -34,11 +34,25 @@ const sidebarItems = [
   { icon: Settings, label: "Settings", id: "settings" },
 ];
 
+import PlatformFilter from "@/components/dashboard/PlatformFilter";
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState("all");
   const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm } = useAlarm();
   const { contests, loading, error, refetch, toggleSubscription } = useContests();
+
+  // Filter contests by platform
+  const filteredContests = selectedPlatform === "all"
+    ? contests
+    : contests.filter((c) => c.platform === selectedPlatform);
+
+  // Count contests by platform
+  const contestCounts = contests.reduce((acc, contest) => {
+    acc[contest.platform] = (acc[contest.platform] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   // Get time until for alarm display
   const getTimeUntilDisplay = () => {
@@ -274,9 +288,16 @@ const Dashboard = () => {
           {/* Contests View */}
           {activeTab === "contests" && (
             <div>
+              {/* Platform Filters */}
+              <PlatformFilter
+                selected={selectedPlatform}
+                onSelect={setSelectedPlatform}
+                contestCounts={contestCounts}
+              />
+              
               <div className="flex items-center justify-between mb-6">
                 <p className="text-muted-foreground">
-                  {contests.length} contests from all platforms
+                  {filteredContests.length} {selectedPlatform === "all" ? "contests from all platforms" : `${selectedPlatform} contests`}
                 </p>
                 <Button
                   variant="glass"
@@ -295,9 +316,22 @@ const Dashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   <span className="ml-3 text-muted-foreground">Loading contests...</span>
                 </div>
+              ) : filteredContests.length === 0 ? (
+                <div className="glass-card p-8 text-center">
+                  <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No {selectedPlatform} contests found</p>
+                  <Button 
+                    variant="glass" 
+                    size="sm" 
+                    onClick={() => setSelectedPlatform("all")} 
+                    className="mt-4"
+                  >
+                    Show All Platforms
+                  </Button>
+                </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {contests.map((contest) => (
+                  {filteredContests.map((contest) => (
                     <ContestCard 
                       key={contest.id} 
                       {...contest}
