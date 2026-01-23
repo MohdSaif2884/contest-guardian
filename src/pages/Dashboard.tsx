@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   XCircle,
   Volume2,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -21,54 +24,9 @@ import StatCard from "@/components/dashboard/StatCard";
 import ReminderSettings from "@/components/dashboard/ReminderSettings";
 import AlarmNotification from "@/components/alarm/AlarmNotification";
 import { useAlarm } from "@/hooks/useAlarm";
+import { useContests } from "@/hooks/useContests";
 
 // Mock data
-const upcomingContests = [
-  {
-    id: "1",
-    name: "Codeforces Round #924 (Div. 2)",
-    platform: "Codeforces",
-    platformColor: "from-blue-500 to-blue-600",
-    platformInitial: "CF",
-    startTime: new Date(Date.now() + 2 * 60 * 60 * 1000 + 30 * 60 * 1000),
-    duration: "2 hours",
-    link: "https://codeforces.com",
-    isSubscribed: true,
-  },
-  {
-    id: "2",
-    name: "LeetCode Weekly Contest 385",
-    platform: "LeetCode",
-    platformColor: "from-amber-500 to-orange-500",
-    platformInitial: "LC",
-    startTime: new Date(Date.now() + 26 * 60 * 60 * 1000),
-    duration: "1.5 hours",
-    link: "https://leetcode.com",
-    isSubscribed: false,
-  },
-  {
-    id: "3",
-    name: "AtCoder Beginner Contest 339",
-    platform: "AtCoder",
-    platformColor: "from-gray-600 to-gray-700",
-    platformInitial: "AC",
-    startTime: new Date(Date.now() + 48 * 60 * 60 * 1000),
-    duration: "100 minutes",
-    link: "https://atcoder.jp",
-    isSubscribed: true,
-  },
-  {
-    id: "4",
-    name: "CodeChef Starters 119",
-    platform: "CodeChef",
-    platformColor: "from-amber-600 to-yellow-500",
-    platformInitial: "CC",
-    startTime: new Date(Date.now() + 72 * 60 * 60 * 1000),
-    duration: "3 hours",
-    link: "https://codechef.com",
-    isSubscribed: false,
-  },
-];
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
@@ -80,6 +38,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm } = useAlarm();
+  const { contests, loading, error, refetch, toggleSubscription } = useContests();
 
   // Get time until for alarm display
   const getTimeUntilDisplay = () => {
@@ -243,7 +202,7 @@ const Dashboard = () => {
                 />
                 <StatCard
                   label="Upcoming"
-                  value={4}
+                  value={contests.length}
                   icon={<Clock className="h-5 w-5" />}
                 />
                 <StatCard
@@ -259,13 +218,53 @@ const Dashboard = () => {
                 />
               </div>
 
-
               {/* Upcoming Contests */}
               <div>
-                <h2 className="text-lg font-semibold mb-4">Upcoming Contests</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Upcoming Contests</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refetch}
+                    disabled={loading}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                    Refresh
+                  </Button>
+                </div>
+                
+                {loading && contests.length === 0 && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-3 text-muted-foreground">Loading real contests...</span>
+                  </div>
+                )}
+                
+                {error && (
+                  <div className="glass-card p-6 text-center">
+                    <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                    <p className="text-destructive font-medium">{error}</p>
+                    <Button variant="glass" size="sm" onClick={refetch} className="mt-4">
+                      Try Again
+                    </Button>
+                  </div>
+                )}
+                
+                {!loading && !error && contests.length === 0 && (
+                  <div className="glass-card p-6 text-center">
+                    <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-muted-foreground">No upcoming contests found</p>
+                  </div>
+                )}
+                
                 <div className="grid md:grid-cols-2 gap-4">
-                  {upcomingContests.map((contest) => (
-                    <ContestCard key={contest.id} {...contest} />
+                  {contests.slice(0, 6).map((contest) => (
+                    <ContestCard 
+                      key={contest.id} 
+                      {...contest} 
+                      onToggleSubscription={toggleSubscription}
+                    />
                   ))}
                 </div>
               </div>
@@ -274,10 +273,39 @@ const Dashboard = () => {
 
           {/* Contests View */}
           {activeTab === "contests" && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...upcomingContests, ...upcomingContests].map((contest, i) => (
-                <ContestCard key={`${contest.id}-${i}`} {...contest} id={`${contest.id}-${i}`} />
-              ))}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-muted-foreground">
+                  {contests.length} contests from all platforms
+                </p>
+                <Button
+                  variant="glass"
+                  size="sm"
+                  onClick={refetch}
+                  disabled={loading}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                  Refresh
+                </Button>
+              </div>
+              
+              {loading && contests.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-3 text-muted-foreground">Loading contests...</span>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {contests.map((contest) => (
+                    <ContestCard 
+                      key={contest.id} 
+                      {...contest}
+                      onToggleSubscription={toggleSubscription}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
