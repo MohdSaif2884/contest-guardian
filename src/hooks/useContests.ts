@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Contest {
   id: string;
@@ -60,23 +61,21 @@ export const useContests = () => {
     setError(null);
 
     try {
-      // Fetch from Kontests API (free, no auth required)
-      const response = await fetch("https://kontests.net/api/v1/all");
+      // Call the edge function to fetch contests (bypasses CORS)
+      const { data, error: funcError } = await supabase.functions.invoke('fetch-contests');
       
-      if (!response.ok) {
-        throw new Error("Failed to fetch contests");
+      if (funcError) {
+        throw new Error(funcError.message);
       }
 
-      const data: KontestsContest[] = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      const kontestsData: KontestsContest[] = data.contests || [];
       
-      // Filter and transform contests
-      const now = new Date();
-      const transformedContests: Contest[] = data
-        .filter((contest) => {
-          const startTime = new Date(contest.start_time);
-          // Only show upcoming contests (not already ended)
-          return startTime > now || contest.status === "CODING";
-        })
+      // Transform contests
+      const transformedContests: Contest[] = kontestsData
         .map((contest, index) => {
           const site = contest.site.toLowerCase().replace(/ /g, "_");
           const config = platformConfig[site] || {
