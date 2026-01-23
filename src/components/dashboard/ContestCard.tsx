@@ -13,9 +13,11 @@ interface ContestCardProps {
   duration: string;
   link: string;
   isSubscribed?: boolean;
+  onToggleSubscription?: (id: string) => void;
 }
 
 const ContestCard = ({
+  id,
   name,
   platform,
   platformColor,
@@ -24,8 +26,13 @@ const ContestCard = ({
   duration,
   link,
   isSubscribed = false,
+  onToggleSubscription,
 }: ContestCardProps) => {
-  const [subscribed, setSubscribed] = useState(isSubscribed);
+  const handleToggle = () => {
+    if (onToggleSubscription) {
+      onToggleSubscription(id);
+    }
+  };
 
   const getTimeUntilStart = () => {
     const now = new Date();
@@ -68,12 +75,12 @@ const ContestCard = ({
           </div>
         </div>
         <Button
-          variant={subscribed ? "success" : "glass"}
+          variant={isSubscribed ? "success" : "glass"}
           size="icon"
-          onClick={() => setSubscribed(!subscribed)}
+          onClick={handleToggle}
           className="shrink-0"
         >
-          {subscribed ? (
+          {isSubscribed ? (
             <Bell className="h-4 w-4" />
           ) : (
             <BellOff className="h-4 w-4" />
@@ -103,7 +110,7 @@ const ContestCard = ({
         </a>
       </div>
 
-      {subscribed && (
+      {isSubscribed && (
         <div className="mt-4 pt-4 border-t border-white/10">
           <span className="inline-flex items-center gap-1.5 text-xs text-success">
             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
