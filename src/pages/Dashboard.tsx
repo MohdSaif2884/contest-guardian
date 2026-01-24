@@ -8,10 +8,6 @@ import {
   LogOut,
   Menu,
   X,
-  Trophy,
-  Clock,
-  CheckCircle2,
-  XCircle,
   Volume2,
   RefreshCw,
   AlertCircle,
@@ -20,21 +16,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ContestCard from "@/components/dashboard/ContestCard";
-import StatCard from "@/components/dashboard/StatCard";
 import ReminderSettings from "@/components/dashboard/ReminderSettings";
 import AlarmNotification from "@/components/alarm/AlarmNotification";
+import PlatformFilter from "@/components/dashboard/PlatformFilter";
+import ReminderOffsets from "@/components/dashboard/ReminderOffsets";
+import NotificationChannels from "@/components/dashboard/NotificationChannels";
+import MonthlyStats from "@/components/dashboard/MonthlyStats";
+import UpcomingContestsList from "@/components/dashboard/UpcomingContestsList";
 import { useAlarm } from "@/hooks/useAlarm";
 import { useContests } from "@/hooks/useContests";
-
-// Mock data
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
   { icon: Calendar, label: "Contests", id: "contests" },
   { icon: Settings, label: "Settings", id: "settings" },
 ];
-
-import PlatformFilter from "@/components/dashboard/PlatformFilter";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -73,6 +69,7 @@ const Dashboard = () => {
         onDismiss={dismissAlarm}
         onSnooze={() => snoozeAlarm(5)}
       />
+
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/5 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
@@ -161,14 +158,14 @@ const Dashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-6"
           >
-            <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+            <h1 className="text-2xl lg:text-3xl font-bold mb-1">
               {activeTab === "dashboard" && "Dashboard"}
               {activeTab === "contests" && "Contest Explorer"}
               {activeTab === "settings" && "Reminder Settings"}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {activeTab === "dashboard" &&
                 "Track your upcoming contests and performance at a glance."}
               {activeTab === "contests" &&
@@ -181,7 +178,7 @@ const Dashboard = () => {
           {/* Dashboard View */}
           {activeTab === "dashboard" && (
             <>
-              {/* Test Alarm Button - Prominent */}
+              {/* Test Alarm Button */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -193,7 +190,7 @@ const Dashboard = () => {
                     In-App Alarm
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Test how the alarm will sound on your phone when contest time comes
+                    Test how the alarm will sound on your phone
                   </p>
                 </div>
                 <Button
@@ -206,80 +203,33 @@ const Dashboard = () => {
                 </Button>
               </motion.div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <StatCard
-                  label="Contests Attended"
-                  value={47}
-                  icon={<Trophy className="h-5 w-5" />}
-                  trend={{ value: "+12% this month", positive: true }}
-                />
-                <StatCard
-                  label="Upcoming"
-                  value={contests.length}
-                  icon={<Clock className="h-5 w-5" />}
-                />
-                <StatCard
-                  label="Completed"
-                  value={43}
-                  icon={<CheckCircle2 className="h-5 w-5" />}
-                />
-                <StatCard
-                  label="Missed"
-                  value={2}
-                  icon={<XCircle className="h-5 w-5" />}
-                  trend={{ value: "-50% vs last month", positive: true }}
-                />
-              </div>
-
-              {/* Upcoming Contests */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Upcoming Contests</h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={refetch}
-                    disabled={loading}
-                    className="gap-2"
-                  >
-                    <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                    Refresh
-                  </Button>
+              {/* Main Dashboard Grid - Two Columns */}
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Left Column - Upcoming Contests */}
+                <div className="lg:col-span-2">
+                  <UpcomingContestsList
+                    contests={contests}
+                    onSubscribe={toggleSubscription}
+                    onViewAll={() => setActiveTab("contests")}
+                    loading={loading}
+                  />
+                  
+                  {error && (
+                    <div className="mt-4 glass-card p-4 text-center">
+                      <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
+                      <p className="text-sm text-destructive">{error}</p>
+                      <Button variant="glass" size="sm" onClick={refetch} className="mt-3">
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                
-                {loading && contests.length === 0 && (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <span className="ml-3 text-muted-foreground">Loading real contests...</span>
-                  </div>
-                )}
-                
-                {error && (
-                  <div className="glass-card p-6 text-center">
-                    <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                    <p className="text-destructive font-medium">{error}</p>
-                    <Button variant="glass" size="sm" onClick={refetch} className="mt-4">
-                      Try Again
-                    </Button>
-                  </div>
-                )}
-                
-                {!loading && !error && contests.length === 0 && (
-                  <div className="glass-card p-6 text-center">
-                    <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">No upcoming contests found</p>
-                  </div>
-                )}
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  {contests.slice(0, 6).map((contest) => (
-                    <ContestCard 
-                      key={contest.id} 
-                      {...contest} 
-                      onToggleSubscription={toggleSubscription}
-                    />
-                  ))}
+
+                {/* Right Column - Settings Widgets */}
+                <div className="space-y-4">
+                  <ReminderOffsets />
+                  <NotificationChannels />
+                  <MonthlyStats attendanceRate={94} remindersSent={23} />
                 </div>
               </div>
             </>
