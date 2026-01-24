@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { 
+  isNative, 
+  scheduleContestNotification, 
+  cancelContestNotification 
+} from "@/lib/capacitor";
 
 interface ScheduledAlarm {
   id: string;
@@ -8,6 +13,7 @@ interface ScheduledAlarm {
   platform: string;
   triggerTime: Date;
   offsetMinutes: number;
+  nativeNotificationId?: number;
 }
 
 interface AlarmState {
@@ -24,7 +30,7 @@ export const useAlarm = () => {
 
   // Schedule an alarm for a contest
   const scheduleAlarm = useCallback(
-    (
+    async (
       contestId: string,
       contestName: string,
       platform: string,
@@ -40,13 +46,29 @@ export const useAlarm = () => {
         return null;
       }
 
+      const alarmId = `${contestId}-${offsetMinutes}`;
+      
+      // Schedule native notification if on mobile
+      let nativeNotificationId: number | undefined;
+      if (isNative()) {
+        const notifId = await scheduleContestNotification(
+          contestId,
+          contestName,
+          platform,
+          triggerTime,
+          offsetMinutes
+        );
+        nativeNotificationId = notifId ?? undefined;
+      }
+
       const alarm: ScheduledAlarm = {
-        id: `${contestId}-${offsetMinutes}`,
+        id: alarmId,
         contestId,
         contestName,
         platform,
         triggerTime,
         offsetMinutes,
+        nativeNotificationId,
       };
 
       setAlarms((prev) => {
@@ -62,9 +84,13 @@ export const useAlarm = () => {
   );
 
   // Cancel an alarm
-  const cancelAlarm = useCallback((alarmId: string) => {
+  const cancelAlarm = useCallback(async (alarmId: string) => {
+    const alarmToCancel = alarms.find((a) => a.id === alarmId);
+    if (alarmToCancel?.nativeNotificationId && isNative()) {
+      await cancelContestNotification(alarmToCancel.nativeNotificationId);
+    }
     setAlarms((prev) => prev.filter((a) => a.id !== alarmId));
-  }, []);
+  }, [alarms]);
 
   // Dismiss current ringing alarm
   const dismissAlarm = useCallback(() => {
