@@ -22,6 +22,7 @@ import PlatformFilter from "@/components/dashboard/PlatformFilter";
 import ReminderOffsets from "@/components/dashboard/ReminderOffsets";
 import NotificationChannels from "@/components/dashboard/NotificationChannels";
 import MonthlyStats from "@/components/dashboard/MonthlyStats";
+import WhatsAppSetup from "@/components/dashboard/WhatsAppSetup";
 import UpcomingContestsList from "@/components/dashboard/UpcomingContestsList";
 import { useAlarm } from "@/hooks/useAlarm";
 import { useContests } from "@/hooks/useContests";
@@ -244,6 +245,7 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <ReminderOffsets />
                   <NotificationChannels />
+                  <WhatsAppSetup isPro={true} />
                   <MonthlyStats attendanceRate={94} remindersSent={23} />
                 </div>
               </div>
