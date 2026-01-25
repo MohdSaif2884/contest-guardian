@@ -2,17 +2,33 @@ import { motion } from "framer-motion";
 import { Bell, MessageSquare, Mail, Volume2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { LucideIcon } from "lucide-react";
 
-const channelsData = [
-  { id: "whatsapp", label: "WhatsApp", icon: MessageSquare, enabled: false, isPro: true },
-  { id: "webpush", label: "Web Push", icon: Bell, enabled: true, isPro: false },
-  { id: "email", label: "Email", icon: Mail, enabled: false, isPro: false },
-  { id: "alarm", label: "In-App Alarm", icon: Volume2, enabled: true, isPro: false },
+interface Channel {
+  id: string;
+  label: string;
+  iconName: string;
+  enabled: boolean;
+  isPro: boolean;
+}
+
+const iconMap: Record<string, LucideIcon> = {
+  MessageSquare,
+  Bell,
+  Mail,
+  Volume2,
+};
+
+const defaultChannels: Channel[] = [
+  { id: "whatsapp", label: "WhatsApp", iconName: "MessageSquare", enabled: false, isPro: true },
+  { id: "webpush", label: "Web Push", iconName: "Bell", enabled: true, isPro: false },
+  { id: "email", label: "Email", iconName: "Mail", enabled: false, isPro: false },
+  { id: "alarm", label: "In-App Alarm", iconName: "Volume2", enabled: true, isPro: false },
 ];
 
 const NotificationChannels = () => {
-  const [channels, setChannels] = useState(channelsData);
+  const [channels, setChannels] = useLocalStorage<Channel[]>("algobell-notification-channels", defaultChannels);
 
   const toggleChannel = (id: string) => {
     setChannels(
@@ -37,27 +53,30 @@ const NotificationChannels = () => {
         How should we reach you?
       </p>
       <div className="space-y-3">
-        {channels.map((channel) => (
-          <div
-            key={channel.id}
-            className="flex items-center justify-between"
-          >
-            <div className="flex items-center gap-2">
-              <channel.icon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{channel.label}</span>
-              {channel.isPro && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50 text-primary">
-                  PRO
-                </Badge>
-              )}
+        {channels.map((channel) => {
+          const IconComponent = iconMap[channel.iconName] || Bell;
+          return (
+            <div
+              key={channel.id}
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <IconComponent className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{channel.label}</span>
+                {channel.isPro && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/50 text-primary">
+                    PRO
+                  </Badge>
+                )}
+              </div>
+              <Switch
+                checked={channel.enabled}
+                onCheckedChange={() => toggleChannel(channel.id)}
+                disabled={channel.isPro}
+              />
             </div>
-            <Switch
-              checked={channel.enabled}
-              onCheckedChange={() => toggleChannel(channel.id)}
-              disabled={channel.isPro}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </motion.div>
   );
