@@ -14,7 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ContestCard from "@/components/dashboard/ContestCard";
 import ReminderSettings from "@/components/dashboard/ReminderSettings";
 import AlarmNotification from "@/components/alarm/AlarmNotification";
@@ -25,6 +25,7 @@ import MonthlyStats from "@/components/dashboard/MonthlyStats";
 import UpcomingContestsList from "@/components/dashboard/UpcomingContestsList";
 import { useAlarm } from "@/hooks/useAlarm";
 import { useContests } from "@/hooks/useContests";
+import { useAuth } from "@/contexts/AuthContext";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
@@ -38,6 +39,17 @@ const Dashboard = () => {
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm } = useAlarm();
   const { contests, loading, error, refetch, toggleSubscription } = useContests();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  // Get user display name and initials
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   // Filter contests by platform
   const filteredContests = selectedPlatform === "all"
@@ -126,19 +138,22 @@ const Dashboard = () => {
           <div className="pt-6 border-t border-white/10">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                J
+                {userInitial}
               </div>
               <div>
-                <div className="text-sm font-medium">John Doe</div>
-                <div className="text-xs text-muted-foreground">Pro Plan</div>
+                <div className="text-sm font-medium">{userName}</div>
+                <div className="text-xs text-muted-foreground">Free Plan</div>
               </div>
             </div>
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </Link>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start gap-2"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </motion.aside>

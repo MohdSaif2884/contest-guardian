@@ -21,12 +21,12 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$5",
+    price: "$2",
     period: "/month",
     description: "For serious competitive programmers who want it all.",
     features: [
       "Everything in Free",
-      "WhatsApp alerts",
+      "WhatsApp message alerts 📱",
       "All 5 platforms",
       "Custom reminder offsets",
       "In-App alarm sounds",

@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
-const reminderOffsets = [
+const defaultOffsets = [
   { id: "60min", label: "60 minutes before", checked: true },
   { id: "30min", label: "30 minutes before", checked: true },
   { id: "10min", label: "10 minutes before", checked: false },
@@ -11,7 +11,7 @@ const reminderOffsets = [
 ];
 
 const ReminderOffsets = () => {
-  const [offsets, setOffsets] = useState(reminderOffsets);
+  const [offsets, setOffsets] = useLocalStorage("algobell-reminder-offsets", defaultOffsets);
 
   const toggleOffset = (id: string) => {
     setOffsets(
