@@ -12,6 +12,7 @@ import {
   RefreshCw,
   AlertCircle,
   Loader2,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ import UpcomingContestsList from "@/components/dashboard/UpcomingContestsList";
 import { useAlarm } from "@/hooks/useAlarm";
 import { useContests } from "@/hooks/useContests";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
@@ -41,6 +43,7 @@ const Dashboard = () => {
   const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm } = useAlarm();
   const { contests, loading, error, refetch, toggleSubscription } = useContests();
   const { user, signOut } = useAuth();
+  const { profile, isAdmin } = useProfile();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -48,22 +51,19 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  // Get user display name and initials
-  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const userInitial = userName.charAt(0).toUpperCase();
+  const isPro = profile?.subscription_status === "pro";
 
-  // Filter contests by platform
   const filteredContests = selectedPlatform === "all"
     ? contests
     : contests.filter((c) => c.platform === selectedPlatform);
 
-  // Count contests by platform
   const contestCounts = contests.reduce((acc, contest) => {
     acc[contest.platform] = (acc[contest.platform] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  // Get time until for alarm display
   const getTimeUntilDisplay = () => {
     if (!alarmState.currentAlarm) return "Now";
     const offsetMins = alarmState.currentAlarm.offsetMinutes;
@@ -73,7 +73,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background dark">
-      {/* Alarm Notification Modal */}
       <AlarmNotification
         contestName={alarmState.currentAlarm?.contestName || "Contest"}
         platform={alarmState.currentAlarm?.platform || "Platform"}
@@ -103,7 +102,6 @@ const Dashboard = () => {
         className="lg:translate-x-0 fixed top-0 left-0 z-40 h-full w-[280px] border-r border-white/5 bg-background/95 backdrop-blur-xl transition-transform lg:transition-none"
       >
         <div className="flex flex-col h-full p-6">
-          {/* Logo */}
           <Link to="/" className="hidden lg:flex items-center gap-2 mb-8">
             <div className="feature-icon h-10 w-10">
               <Bell className="h-5 w-5 text-white" />
@@ -111,7 +109,6 @@ const Dashboard = () => {
             <span className="text-xl font-bold gradient-text">AlgoBell</span>
           </Link>
 
-          {/* Nav Items */}
           <nav className="flex-1 mt-16 lg:mt-0">
             <ul className="space-y-2">
               {sidebarItems.map((item) => (
@@ -132,6 +129,17 @@ const Dashboard = () => {
                   </button>
                 </li>
               ))}
+              {isAdmin && (
+                <li>
+                  <Link
+                    to="/admin"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                  >
+                    <Shield className="h-5 w-5" />
+                    Admin Panel
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
 
@@ -143,7 +151,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="text-sm font-medium">{userName}</div>
-                <div className="text-xs text-muted-foreground">Free Plan</div>
+                <div className="text-xs text-muted-foreground">{isPro ? "Pro Plan ⚡" : "Free Plan"}</div>
               </div>
             </div>
             <Button 
@@ -170,7 +178,6 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="lg:ml-[280px] pt-16 lg:pt-0 min-h-screen">
         <div className="p-6 lg:p-8">
-          {/* Page Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -194,7 +201,6 @@ const Dashboard = () => {
           {/* Dashboard View */}
           {activeTab === "dashboard" && (
             <>
-              {/* Test Alarm Button */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -219,9 +225,7 @@ const Dashboard = () => {
                 </Button>
               </motion.div>
 
-              {/* Main Dashboard Grid - Two Columns */}
               <div className="grid lg:grid-cols-3 gap-6">
-                {/* Left Column - Upcoming Contests */}
                 <div className="lg:col-span-2">
                   <UpcomingContestsList
                     contests={contests}
@@ -241,11 +245,10 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {/* Right Column - Settings Widgets */}
                 <div className="space-y-4">
                   <ReminderOffsets />
                   <NotificationChannels />
-                  <WhatsAppSetup isPro={true} />
+                  <WhatsAppSetup isPro={isPro} />
                   <MonthlyStats attendanceRate={94} remindersSent={23} />
                 </div>
               </div>
@@ -255,7 +258,6 @@ const Dashboard = () => {
           {/* Contests View */}
           {activeTab === "contests" && (
             <div>
-              {/* Platform Filters */}
               <PlatformFilter
                 selected={selectedPlatform}
                 onSelect={setSelectedPlatform}

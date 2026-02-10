@@ -14,16 +14,239 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contest_subscriptions: {
+        Row: {
+          contest_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          contest_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          contest_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_subscriptions_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contests: {
+        Row: {
+          created_at: string
+          difficulty: string | null
+          duration: number
+          external_id: string | null
+          id: string
+          is_featured: boolean
+          name: string
+          platform: string
+          start_time: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: string | null
+          duration?: number
+          external_id?: string | null
+          id?: string
+          is_featured?: boolean
+          name: string
+          platform: string
+          start_time: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string | null
+          duration?: number
+          external_id?: string | null
+          id?: string
+          is_featured?: boolean
+          name?: string
+          platform?: string
+          start_time?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          notification_channels: Json
+          phone_number: string | null
+          preferred_platforms: string[] | null
+          rating_codechef: number | null
+          rating_codeforces: number | null
+          rating_leetcode: number | null
+          reminder_offsets: Json
+          subscription_status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          notification_channels?: Json
+          phone_number?: string | null
+          preferred_platforms?: string[] | null
+          rating_codechef?: number | null
+          rating_codeforces?: number | null
+          rating_leetcode?: number | null
+          reminder_offsets?: Json
+          subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          notification_channels?: Json
+          phone_number?: string | null
+          preferred_platforms?: string[] | null
+          rating_codechef?: number | null
+          rating_codeforces?: number | null
+          rating_leetcode?: number | null
+          reminder_offsets?: Json
+          subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          channel: string
+          contest_id: string
+          created_at: string
+          id: string
+          reminder_time: string
+          status: Database["public"]["Enums"]["reminder_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          contest_id: string
+          created_at?: string
+          id?: string
+          reminder_time: string
+          status?: Database["public"]["Enums"]["reminder_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          contest_id?: string
+          created_at?: string
+          id?: string
+          reminder_time?: string
+          status?: Database["public"]["Enums"]["reminder_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          contest_id: string
+          created_at: string
+          id: string
+          rank: number | null
+          rating_change: number | null
+          solved: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contest_id: string
+          created_at?: string
+          id?: string
+          rank?: number | null
+          rating_change?: number | null
+          solved?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contest_id?: string
+          created_at?: string
+          id?: string
+          rank?: number | null
+          rating_change?: number | null
+          solved?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      reminder_status: "pending" | "sent" | "failed"
+      subscription_status: "free" | "pro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +373,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      reminder_status: ["pending", "sent", "failed"],
+      subscription_status: ["free", "pro"],
+    },
   },
 } as const
