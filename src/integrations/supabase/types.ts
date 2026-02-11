@@ -215,6 +215,39 @@ export type Database = {
           },
         ]
       }
+      sync_logs: {
+        Row: {
+          completed_at: string | null
+          contests_synced: number | null
+          error_message: string | null
+          id: string
+          platform: string | null
+          started_at: string
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          contests_synced?: number | null
+          error_message?: string | null
+          id?: string
+          platform?: string | null
+          started_at?: string
+          status?: string
+          sync_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          contests_synced?: number | null
+          error_message?: string | null
+          id?: string
+          platform?: string | null
+          started_at?: string
+          status?: string
+          sync_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
