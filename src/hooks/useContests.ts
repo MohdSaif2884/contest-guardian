@@ -13,17 +13,6 @@ export interface Contest {
   isSubscribed: boolean;
 }
 
-interface KontestsContest {
-  name: string;
-  url: string;
-  start_time: string;
-  end_time: string;
-  duration: string;
-  site: string;
-  in_24_hours: string;
-  status: string;
-}
-
 const platformConfig: Record<string, { color: string; initial: string; displayName: string }> = {
   codeforces: { color: "from-blue-500 to-blue-600", initial: "CF", displayName: "Codeforces" },
   leetcode: { color: "from-amber-500 to-orange-500", initial: "LC", displayName: "LeetCode" },
@@ -37,14 +26,9 @@ const platformConfig: Record<string, { color: string; initial: string; displayNa
 const formatDuration = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  
-  if (hours > 0 && minutes > 0) {
-    return `${hours}h ${minutes}m`;
-  } else if (hours > 0) {
-    return `${hours} hours`;
-  } else {
-    return `${minutes} minutes`;
-  }
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours} hours`;
+  return `${minutes} minutes`;
 };
 
 export const useContests = () => {
@@ -58,49 +42,70 @@ export const useContests = () => {
     setError(null);
 
     try {
-      // Call the edge function to fetch contests (bypasses CORS)
-      const { data, error: funcError } = await supabase.functions.invoke('fetch-contests');
-      
-      if (funcError) {
-        throw new Error(funcError.message);
-      }
+      // Read directly from DB (synced by cron)
+      const { data: dbContests, error: dbError } = await supabase
+        .from("contests")
+        .select("*")
+        .gte("start_time", new Date().toISOString())
+        .order("start_time", { ascending: true })
+        .limit(50);
 
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+      if (dbError) throw new Error(dbError.message);
 
-      const kontestsData: KontestsContest[] = data.contests || [];
-      
-      // Transform contests
-      const transformedContests: Contest[] = kontestsData
-        .map((contest, index) => {
-          const site = contest.site.toLowerCase().replace(/ /g, "_");
+      if (dbContests && dbContests.length > 0) {
+        const transformed = dbContests.map((contest) => {
+          const site = contest.platform.toLowerCase().replace(/ /g, "_");
           const config = platformConfig[site] || {
             color: "from-gray-500 to-gray-600",
-            initial: contest.site.substring(0, 2).toUpperCase(),
-            displayName: contest.site,
+            initial: contest.platform.substring(0, 2).toUpperCase(),
+            displayName: contest.platform,
           };
 
-          // Parse duration - Kontests returns duration in seconds as string
-          const durationSeconds = parseInt(contest.duration) || 0;
-          const durationFormatted = formatDuration(durationSeconds);
-
           return {
-            id: `${site}-${index}-${contest.name.substring(0, 10)}`,
+            id: contest.id,
             name: contest.name,
             platform: config.displayName,
             platformColor: config.color,
             platformInitial: config.initial,
             startTime: new Date(contest.start_time),
-            duration: durationFormatted,
+            duration: formatDuration(contest.duration),
             link: contest.url,
-            isSubscribed: subscribedIds.has(`${site}-${index}-${contest.name.substring(0, 10)}`),
+            isSubscribed: subscribedIds.has(contest.id),
           };
-        })
-        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-        .slice(0, 50); // Limit to 50 contests
+        });
 
-      setContests(transformedContests);
+        setContests(transformed);
+        return;
+      }
+
+      // Fallback: if DB is empty, trigger sync via edge function
+      console.log("DB empty, fetching from edge function...");
+      const { data, error: funcError } = await supabase.functions.invoke('fetch-contests');
+      if (funcError) throw new Error(funcError.message);
+
+      const kontestsData = data?.contests || [];
+      const transformed = kontestsData.map((contest: any, index: number) => {
+        const site = contest.site.toLowerCase().replace(/ /g, "_");
+        const config = platformConfig[site] || {
+          color: "from-gray-500 to-gray-600",
+          initial: contest.site.substring(0, 2).toUpperCase(),
+          displayName: contest.site,
+        };
+
+        return {
+          id: `${site}-${index}-${contest.name.substring(0, 10)}`,
+          name: contest.name,
+          platform: config.displayName,
+          platformColor: config.color,
+          platformInitial: config.initial,
+          startTime: new Date(contest.start_time),
+          duration: formatDuration(parseInt(contest.duration) || 0),
+          link: contest.url,
+          isSubscribed: false,
+        };
+      }).sort((a: Contest, b: Contest) => a.startTime.getTime() - b.startTime.getTime());
+
+      setContests(transformed);
     } catch (err) {
       console.error("Error fetching contests:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch contests");
@@ -112,11 +117,8 @@ export const useContests = () => {
   const toggleSubscription = (contestId: string) => {
     setSubscribedIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(contestId)) {
-        newSet.delete(contestId);
-      } else {
-        newSet.add(contestId);
-      }
+      if (newSet.has(contestId)) newSet.delete(contestId);
+      else newSet.add(contestId);
       return newSet;
     });
 
@@ -131,17 +133,9 @@ export const useContests = () => {
 
   useEffect(() => {
     fetchContests();
-    
-    // Refresh every 5 minutes
     const interval = setInterval(fetchContests, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  return {
-    contests,
-    loading,
-    error,
-    refetch: fetchContests,
-    toggleSubscription,
-  };
+  return { contests, loading, error, refetch: fetchContests, toggleSubscription };
 };
