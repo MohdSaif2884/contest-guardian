@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
 import { toast } from "sonner";
 
 export interface Contest {
@@ -40,7 +39,6 @@ export const useContests = () => {
   const [error, setError] = useState<string | null>(null);
   const [subscribedIds, setSubscribedIds] = useState<Set<string>>(new Set());
   const { user } = useAuth();
-  const { profile } = useProfile();
 
   // Load user's subscriptions from DB
   const loadSubscriptions = useCallback(async () => {
@@ -99,7 +97,7 @@ export const useContests = () => {
         return;
       }
 
-      // Fallback: if DB is empty, trigger sync
+      // Fallback: if DB is empty, trigger fetch via edge function
       console.log("DB empty, fetching from edge function...");
       const { data, error: funcError } = await supabase.functions.invoke('fetch-contests');
       if (funcError) throw new Error(funcError.message);
@@ -135,24 +133,28 @@ export const useContests = () => {
     }
   };
 
-  // Auto-create reminders based on user's preferred offsets
+  // Auto-create reminders based on user's profile settings
   const createReminders = async (contestId: string) => {
-    if (!user || !profile) return;
+    if (!user) return;
 
-    const offsets = (profile.reminder_offsets as number[]) || [30, 60];
-    const channels = profile.notification_channels as Record<string, boolean>;
+    // Fetch profile settings directly to avoid hook dependency
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("reminder_offsets, notification_channels")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    // Get contest start time
+    const offsets = (profileData?.reminder_offsets as number[]) || [30, 60];
+    const channels = (profileData?.notification_channels as Record<string, boolean>) || { browser: true };
+
     const contest = contests.find(c => c.id === contestId);
     if (!contest) return;
 
-    const activeChannels = Object.entries(channels || {})
+    const activeChannels = Object.entries(channels)
       .filter(([_, enabled]) => enabled)
       .map(([channel]) => channel);
 
-    if (activeChannels.length === 0) {
-      activeChannels.push("browser"); // default
-    }
+    if (activeChannels.length === 0) activeChannels.push("browser");
 
     const reminders = [];
     for (const offset of offsets) {
@@ -197,28 +199,15 @@ export const useContests = () => {
 
     try {
       if (isCurrentlySubscribed) {
-        // Unsubscribe: delete subscription + reminders
-        await supabase
-          .from("contest_subscriptions")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("contest_id", contestId);
-
-        await supabase
-          .from("reminders")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("contest_id", contestId);
-
+        await supabase.from("contest_subscriptions").delete()
+          .eq("user_id", user.id).eq("contest_id", contestId);
+        await supabase.from("reminders").delete()
+          .eq("user_id", user.id).eq("contest_id", contestId);
         toast.success("Unsubscribed from contest");
       } else {
-        // Subscribe: create subscription + reminders
-        const { error } = await supabase
-          .from("contest_subscriptions")
+        const { error } = await supabase.from("contest_subscriptions")
           .insert({ user_id: user.id, contest_id: contestId });
-
         if (error) throw error;
-
         await createReminders(contestId);
         toast.success("Subscribed! Reminders set 🔔");
       }
