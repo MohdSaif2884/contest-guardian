@@ -1,22 +1,24 @@
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useProfile } from "@/hooks/useProfile";
 
-const defaultOffsets = [
-  { id: "60min", label: "60 minutes before", checked: true },
-  { id: "30min", label: "30 minutes before", checked: true },
-  { id: "10min", label: "10 minutes before", checked: false },
-  { id: "live", label: "When contest goes LIVE", checked: true },
+const offsetOptions = [
+  { minutes: 60, label: "60 minutes before" },
+  { minutes: 30, label: "30 minutes before" },
+  { minutes: 10, label: "10 minutes before" },
+  { minutes: 0, label: "When contest goes LIVE" },
 ];
 
 const ReminderOffsets = () => {
-  const [offsets, setOffsets] = useLocalStorage("algobell-reminder-offsets", defaultOffsets);
+  const { profile, updateProfile } = useProfile();
+  const activeOffsets: number[] = (profile?.reminder_offsets as number[]) || [30, 60];
 
-  const toggleOffset = (id: string) => {
-    setOffsets(
-      offsets.map((o) => (o.id === id ? { ...o, checked: !o.checked } : o))
-    );
+  const toggleOffset = (minutes: number) => {
+    const newOffsets = activeOffsets.includes(minutes)
+      ? activeOffsets.filter(o => o !== minutes)
+      : [...activeOffsets, minutes];
+    updateProfile({ reminder_offsets: newOffsets });
   };
 
   return (
@@ -33,15 +35,15 @@ const ReminderOffsets = () => {
         When should we remind you?
       </p>
       <div className="space-y-3">
-        {offsets.map((offset) => (
+        {offsetOptions.map((offset) => (
           <div
-            key={offset.id}
+            key={offset.minutes}
             className="flex items-center justify-between"
           >
             <span className="text-sm">{offset.label}</span>
             <Switch
-              checked={offset.checked}
-              onCheckedChange={() => toggleOffset(offset.id)}
+              checked={activeOffsets.includes(offset.minutes)}
+              onCheckedChange={() => toggleOffset(offset.minutes)}
             />
           </div>
         ))}

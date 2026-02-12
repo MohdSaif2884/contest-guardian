@@ -1,38 +1,42 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useProfile } from "@/hooks/useProfile";
 
-const reminderOffsets = [
-  { id: "60min", label: "60 minutes before", checked: true },
-  { id: "30min", label: "30 minutes before", checked: true },
-  { id: "10min", label: "10 minutes before", checked: true },
-  { id: "live", label: "When contest goes LIVE", checked: false },
+const offsetOptions = [
+  { minutes: 60, label: "60 minutes before" },
+  { minutes: 30, label: "30 minutes before" },
+  { minutes: 10, label: "10 minutes before" },
+  { minutes: 0, label: "When contest goes LIVE" },
 ];
 
-const channels = [
-  { id: "whatsapp", label: "WhatsApp", icon: "💬", enabled: true },
-  { id: "webpush", label: "Web Push", icon: "🔔", enabled: true },
-  { id: "email", label: "Email", icon: "📧", enabled: false },
-  { id: "alarm", label: "In-App Alarm", icon: "⏰", enabled: false },
+const channelConfig = [
+  { id: "whatsapp", label: "WhatsApp", icon: "💬" },
+  { id: "browser", label: "Web Push", icon: "🔔" },
+  { id: "email", label: "Email", icon: "📧" },
+  { id: "alarm", label: "In-App Alarm", icon: "⏰" },
 ];
 
 const ReminderSettings = () => {
-  const [offsets, setOffsets] = useState(reminderOffsets);
-  const [channelSettings, setChannelSettings] = useState(channels);
+  const { profile, updateProfile } = useProfile();
+  const activeOffsets: number[] = (profile?.reminder_offsets as number[]) || [30, 60];
+  const channels = (profile?.notification_channels as Record<string, boolean>) || {
+    browser: true,
+    email: false,
+    whatsapp: false,
+    alarm: false,
+  };
 
-  const toggleOffset = (id: string) => {
-    setOffsets(
-      offsets.map((o) => (o.id === id ? { ...o, checked: !o.checked } : o))
-    );
+  const toggleOffset = (minutes: number) => {
+    const newOffsets = activeOffsets.includes(minutes)
+      ? activeOffsets.filter(o => o !== minutes)
+      : [...activeOffsets, minutes];
+    updateProfile({ reminder_offsets: newOffsets });
   };
 
   const toggleChannel = (id: string) => {
-    setChannelSettings(
-      channelSettings.map((c) =>
-        c.id === id ? { ...c, enabled: !c.enabled } : c
-      )
-    );
+    const updated = { ...channels, [id]: !channels[id] };
+    updateProfile({ notification_channels: updated });
   };
 
   return (
@@ -48,20 +52,20 @@ const ReminderSettings = () => {
           Choose when you want to be reminded before a contest starts.
         </p>
         <div className="space-y-3">
-          {offsets.map((offset) => (
+          {offsetOptions.map((offset) => (
             <label
-              key={offset.id}
+              key={offset.minutes}
               className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary/70 cursor-pointer transition-colors"
             >
               <div
-                onClick={() => toggleOffset(offset.id)}
+                onClick={() => toggleOffset(offset.minutes)}
                 className={`w-5 h-5 rounded flex items-center justify-center transition-colors cursor-pointer ${
-                  offset.checked
+                  activeOffsets.includes(offset.minutes)
                     ? "bg-primary text-white"
                     : "border border-white/20 bg-white/5"
                 }`}
               >
-                {offset.checked && <Check className="h-3 w-3" />}
+                {activeOffsets.includes(offset.minutes) && <Check className="h-3 w-3" />}
               </div>
               <span className="text-sm">{offset.label}</span>
             </label>
@@ -81,7 +85,7 @@ const ReminderSettings = () => {
           Choose how you want to receive your contest reminders.
         </p>
         <div className="space-y-4">
-          {channelSettings.map((channel) => (
+          {channelConfig.map((channel) => (
             <div
               key={channel.id}
               className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
@@ -91,7 +95,7 @@ const ReminderSettings = () => {
                 <span className="text-sm font-medium">{channel.label}</span>
               </div>
               <Switch
-                checked={channel.enabled}
+                checked={channels[channel.id] || false}
                 onCheckedChange={() => toggleChannel(channel.id)}
               />
             </div>
