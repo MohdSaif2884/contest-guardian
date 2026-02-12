@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import { toast } from "sonner";
 
 export interface Contest {
   id: string;
@@ -36,13 +39,31 @@ export const useContests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscribedIds, setSubscribedIds] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+  const { profile } = useProfile();
+
+  // Load user's subscriptions from DB
+  const loadSubscriptions = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from("contest_subscriptions")
+        .select("contest_id")
+        .eq("user_id", user.id);
+
+      if (data) {
+        setSubscribedIds(new Set(data.map(s => s.contest_id)));
+      }
+    } catch (err) {
+      console.error("Error loading subscriptions:", err);
+    }
+  }, [user]);
 
   const fetchContests = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Read directly from DB (synced by cron)
       const { data: dbContests, error: dbError } = await supabase
         .from("contests")
         .select("*")
@@ -78,7 +99,7 @@ export const useContests = () => {
         return;
       }
 
-      // Fallback: if DB is empty, trigger sync via edge function
+      // Fallback: if DB is empty, trigger sync
       console.log("DB empty, fetching from edge function...");
       const { data, error: funcError } = await supabase.functions.invoke('fetch-contests');
       if (funcError) throw new Error(funcError.message);
@@ -114,28 +135,118 @@ export const useContests = () => {
     }
   };
 
-  const toggleSubscription = (contestId: string) => {
-    setSubscribedIds((prev) => {
+  // Auto-create reminders based on user's preferred offsets
+  const createReminders = async (contestId: string) => {
+    if (!user || !profile) return;
+
+    const offsets = (profile.reminder_offsets as number[]) || [30, 60];
+    const channels = profile.notification_channels as Record<string, boolean>;
+
+    // Get contest start time
+    const contest = contests.find(c => c.id === contestId);
+    if (!contest) return;
+
+    const activeChannels = Object.entries(channels || {})
+      .filter(([_, enabled]) => enabled)
+      .map(([channel]) => channel);
+
+    if (activeChannels.length === 0) {
+      activeChannels.push("browser"); // default
+    }
+
+    const reminders = [];
+    for (const offset of offsets) {
+      for (const channel of activeChannels) {
+        const reminderTime = new Date(contest.startTime.getTime() - offset * 60 * 1000);
+        if (reminderTime > new Date()) {
+          reminders.push({
+            user_id: user.id,
+            contest_id: contestId,
+            reminder_time: reminderTime.toISOString(),
+            channel,
+            status: "pending" as const,
+          });
+        }
+      }
+    }
+
+    if (reminders.length > 0) {
+      const { error } = await supabase.from("reminders").insert(reminders);
+      if (error) console.error("Error creating reminders:", error);
+    }
+  };
+
+  const toggleSubscription = async (contestId: string) => {
+    if (!user) {
+      toast.error("Please sign in to subscribe to contests");
+      return;
+    }
+
+    const isCurrentlySubscribed = subscribedIds.has(contestId);
+
+    // Optimistic update
+    setSubscribedIds(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(contestId)) newSet.delete(contestId);
+      if (isCurrentlySubscribed) newSet.delete(contestId);
       else newSet.add(contestId);
       return newSet;
     });
-
-    setContests((prev) =>
-      prev.map((contest) =>
-        contest.id === contestId
-          ? { ...contest, isSubscribed: !contest.isSubscribed }
-          : contest
-      )
+    setContests(prev =>
+      prev.map(c => c.id === contestId ? { ...c, isSubscribed: !isCurrentlySubscribed } : c)
     );
+
+    try {
+      if (isCurrentlySubscribed) {
+        // Unsubscribe: delete subscription + reminders
+        await supabase
+          .from("contest_subscriptions")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("contest_id", contestId);
+
+        await supabase
+          .from("reminders")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("contest_id", contestId);
+
+        toast.success("Unsubscribed from contest");
+      } else {
+        // Subscribe: create subscription + reminders
+        const { error } = await supabase
+          .from("contest_subscriptions")
+          .insert({ user_id: user.id, contest_id: contestId });
+
+        if (error) throw error;
+
+        await createReminders(contestId);
+        toast.success("Subscribed! Reminders set 🔔");
+      }
+    } catch (err) {
+      // Revert optimistic update
+      setSubscribedIds(prev => {
+        const newSet = new Set(prev);
+        if (isCurrentlySubscribed) newSet.add(contestId);
+        else newSet.delete(contestId);
+        return newSet;
+      });
+      setContests(prev =>
+        prev.map(c => c.id === contestId ? { ...c, isSubscribed: isCurrentlySubscribed } : c)
+      );
+      console.error("Subscription error:", err);
+      toast.error("Failed to update subscription");
+    }
   };
+
+  useEffect(() => {
+    loadSubscriptions();
+  }, [loadSubscriptions]);
 
   useEffect(() => {
     fetchContests();
     const interval = setInterval(fetchContests, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [subscribedIds]);
 
   return { contests, loading, error, refetch: fetchContests, toggleSubscription };
 };

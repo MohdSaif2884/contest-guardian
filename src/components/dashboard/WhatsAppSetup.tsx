@@ -4,7 +4,7 @@ import { MessageSquare, Phone, Send, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useProfile } from "@/hooks/useProfile";
 import { useWhatsApp } from "@/hooks/useWhatsApp";
 
 interface WhatsAppSetupProps {
@@ -12,15 +12,16 @@ interface WhatsAppSetupProps {
 }
 
 const WhatsAppSetup = ({ isPro = false }: WhatsAppSetupProps) => {
-  const [phoneNumber, setPhoneNumber] = useLocalStorage<string>("algobell-whatsapp-number", "");
+  const { profile, updateProfile } = useProfile();
+  const phoneNumber = profile?.phone_number || "";
   const [isEditing, setIsEditing] = useState(!phoneNumber);
   const [tempPhone, setTempPhone] = useState(phoneNumber);
-  const [isVerified, setIsVerified] = useLocalStorage<boolean>("algobell-whatsapp-verified", false);
+  const [isVerified, setIsVerified] = useState(false);
   const { sendTestMessage, isSending } = useWhatsApp();
 
   const handleSaveNumber = () => {
     if (tempPhone && tempPhone.length >= 10) {
-      setPhoneNumber(tempPhone);
+      updateProfile({ phone_number: tempPhone });
       setIsEditing(false);
     }
   };
@@ -107,7 +108,7 @@ const WhatsAppSetup = ({ isPro = false }: WhatsAppSetupProps) => {
                 <Phone className="h-3 w-3 text-muted-foreground" />
                 <span className="text-sm font-mono">{phoneNumber}</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="h-7 text-xs">
+              <Button variant="ghost" size="sm" onClick={() => { setTempPhone(phoneNumber); setIsEditing(true); }} className="h-7 text-xs">
                 Edit
               </Button>
             </div>
