@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, RefreshCw, Calendar, Loader2, Bell, ArrowLeft, Filter } from "lucide-react";
+import { Search, RefreshCw, Calendar, Loader2, Bell, ArrowLeft, Filter, Home, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -54,11 +54,18 @@ const Explore = () => {
           className="flex items-center justify-between mb-6"
         >
           <div className="flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-1">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="shrink-0" title="Home">
+                  <Home className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button variant="ghost" size="icon" className="shrink-0" title="Dashboard">
+                  <LayoutDashboard className="h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold">Contest Explorer</h1>
               <p className="text-sm text-muted-foreground">
