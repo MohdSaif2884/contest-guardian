@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Bell,
@@ -40,7 +40,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("all");
-  const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm } = useAlarm();
+  const { alarmState, dismissAlarm, snoozeAlarm, triggerAlarm, scheduleAlarm } = useAlarm();
   const { contests, loading, error, refetch, toggleSubscription } = useContests();
   const { user, signOut } = useAuth();
   const { profile, isAdmin } = useProfile();
@@ -58,6 +58,15 @@ const Dashboard = () => {
   const filteredContests = selectedPlatform === "all"
     ? contests
     : contests.filter((c) => c.platform === selectedPlatform);
+
+  // Auto-schedule in-app alarms for subscribed contests
+  useEffect(() => {
+    const subscribedContests = contests.filter(c => c.isSubscribed);
+    subscribedContests.forEach(contest => {
+      // Schedule alarm 10 minutes before
+      scheduleAlarm(contest.id, contest.name, contest.platform, contest.startTime, 10);
+    });
+  }, [contests, scheduleAlarm]);
 
   const contestCounts = contests.reduce((acc, contest) => {
     acc[contest.platform] = (acc[contest.platform] || 0) + 1;
@@ -230,7 +239,7 @@ const Dashboard = () => {
                   <UpcomingContestsList
                     contests={contests}
                     onSubscribe={toggleSubscription}
-                    onViewAll={() => setActiveTab("contests")}
+                    onViewAll={() => navigate("/explore")}
                     loading={loading}
                   />
                   
