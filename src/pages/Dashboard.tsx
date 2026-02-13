@@ -13,6 +13,8 @@ import {
   AlertCircle,
   Loader2,
   Shield,
+  Home,
+  Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -35,6 +37,7 @@ const sidebarItems = [
   { icon: Calendar, label: "Contests", id: "contests" },
   { icon: Settings, label: "Settings", id: "settings" },
 ];
+
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -120,6 +123,16 @@ const Dashboard = () => {
 
           <nav className="flex-1 mt-16 lg:mt-0">
             <ul className="space-y-2">
+              <li>
+                <Link
+                  to="/"
+                  onClick={() => setSidebarOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                >
+                  <Home className="h-5 w-5" />
+                  Home
+                </Link>
+              </li>
               {sidebarItems.map((item) => (
                 <li key={item.id}>
                   <button
@@ -138,6 +151,16 @@ const Dashboard = () => {
                   </button>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/explore"
+                  onClick={() => setSidebarOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                >
+                  <Compass className="h-5 w-5" />
+                  Contest Explorer
+                </Link>
+              </li>
               {isAdmin && (
                 <li>
                   <Link
