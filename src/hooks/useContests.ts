@@ -20,9 +20,11 @@ const platformConfig: Record<string, { color: string; initial: string; displayNa
   leetcode: { color: "from-amber-500 to-orange-500", initial: "LC", displayName: "LeetCode" },
   codechef: { color: "from-amber-600 to-yellow-500", initial: "CC", displayName: "CodeChef" },
   atcoder: { color: "from-gray-600 to-gray-700", initial: "AC", displayName: "AtCoder" },
-  hacker_rank: { color: "from-green-500 to-emerald-600", initial: "HR", displayName: "HackerRank" },
-  hacker_earth: { color: "from-indigo-500 to-purple-600", initial: "HE", displayName: "HackerEarth" },
-  top_coder: { color: "from-cyan-500 to-blue-600", initial: "TC", displayName: "TopCoder" },
+  hackerrank: { color: "from-green-500 to-emerald-600", initial: "HR", displayName: "HackerRank" },
+  hackerearth: { color: "from-indigo-500 to-purple-600", initial: "HE", displayName: "HackerEarth" },
+  topcoder: { color: "from-cyan-500 to-blue-600", initial: "TC", displayName: "TopCoder" },
+  kaggle: { color: "from-sky-400 to-blue-500", initial: "KG", displayName: "Kaggle" },
+  codesignal: { color: "from-violet-500 to-purple-600", initial: "CS", displayName: "CodeSignal" },
 };
 
 const formatDuration = (seconds: number): string => {

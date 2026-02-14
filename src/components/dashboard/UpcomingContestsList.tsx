@@ -116,7 +116,7 @@ const UpcomingContestsList = ({
         </div>
       ) : (
         <>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin">
             {paged.map((contest) => (
               <UpcomingContestItem
                 key={contest.id}

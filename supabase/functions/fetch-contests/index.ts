@@ -5,17 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CodeforcesContest {
-  id: number;
-  name: string;
-  type: string;
-  phase: string;
-  frozen: boolean;
-  durationSeconds: number;
-  startTimeSeconds?: number;
-  relativeTimeSeconds?: number;
-}
-
 interface TransformedContest {
   name: string;
   url: string;
@@ -25,179 +14,150 @@ interface TransformedContest {
   status: string;
 }
 
-async function fetchCodeforcesContests(): Promise<TransformedContest[]> {
+// ── CLIST API ──────────────────────────────────────────────
+async function fetchClistContests(): Promise<TransformedContest[]> {
+  const apiKey = Deno.env.get("CLIST_API_KEY");
+  if (!apiKey) {
+    console.warn("CLIST_API_KEY not set, skipping CLIST fetch");
+    return [];
+  }
+
+  const resources = [
+    "codeforces.com", "leetcode.com", "codechef.com", "atcoder.jp",
+    "hackerrank.com", "hackerearth.com", "topcoder.com",
+    "kaggle.com", "codesignal.com",
+  ];
+
+  const now = new Date().toISOString();
+  const params = new URLSearchParams({
+    upcoming: "true",
+    start__gt: now,
+    order_by: "start",
+    limit: "150",
+    resource__name__in: resources.join(","),
+  });
+
   try {
-    const response = await fetch("https://codeforces.com/api/contest.list", {
-      signal: AbortSignal.timeout(10000), // 10 second timeout
-    });
-    
+    // CLIST API expects "ApiKey username:key" format
+    const response = await fetch(
+      `https://clist.by/api/v4/contest/?${params}`,
+      {
+        headers: { Authorization: `ApiKey ${apiKey}` },
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
     if (!response.ok) {
-      console.error("Codeforces API error:", response.status);
+      console.error("CLIST API error:", response.status, await response.text());
       return [];
     }
 
     const data = await response.json();
-    
-    if (data.status !== "OK") {
-      console.error("Codeforces API returned non-OK status");
-      return [];
-    }
+    const contests: TransformedContest[] = (data.objects || []).map(
+      (c: { event: string; href: string; start: string; duration: number; resource: { name: string } }) => {
+        const host = c.resource?.name || "";
+        const site = mapClistResource(host);
+        return {
+          name: c.event,
+          url: c.href,
+          start_time: new Date(c.start).toISOString(),
+          duration: String(c.duration),
+          site,
+          status: "BEFORE",
+        };
+      }
+    );
 
-    const now = Math.floor(Date.now() / 1000);
-    
-    return data.result
-      .filter((contest: CodeforcesContest) => 
-        contest.phase === "BEFORE" || contest.phase === "CODING"
-      )
-      .slice(0, 20)
-      .map((contest: CodeforcesContest) => ({
-        name: contest.name,
-        url: `https://codeforces.com/contest/${contest.id}`,
-        start_time: contest.startTimeSeconds 
-          ? new Date(contest.startTimeSeconds * 1000).toISOString()
-          : new Date().toISOString(),
-        duration: String(contest.durationSeconds),
-        site: "CodeForces",
-        status: contest.phase === "CODING" ? "CODING" : "BEFORE",
-      }));
+    return contests;
   } catch (error) {
-    console.error("Error fetching Codeforces:", error);
+    console.error("Error fetching CLIST:", error);
     return [];
   }
 }
 
-async function fetchAtCoderContests(): Promise<TransformedContest[]> {
+function mapClistResource(host: string): string {
+  const map: Record<string, string> = {
+    "codeforces.com": "CodeForces",
+    "leetcode.com": "LeetCode",
+    "codechef.com": "CodeChef",
+    "atcoder.jp": "AtCoder",
+    "hackerrank.com": "HackerRank",
+    "hackerearth.com": "HackerEarth",
+    "topcoder.com": "TopCoder",
+    "kaggle.com": "Kaggle",
+    "codesignal.com": "CodeSignal",
+  };
+  return map[host] || host;
+}
+
+// ── Codeforces direct API (fallback) ──────────────────────
+async function fetchCodeforcesContests(): Promise<TransformedContest[]> {
   try {
-    // AtCoder Problems API (community maintained, reliable)
-    const response = await fetch("https://kenkoooo.com/atcoder/resources/contests.json", {
+    const response = await fetch("https://codeforces.com/api/contest.list", {
       signal: AbortSignal.timeout(10000),
     });
-    
-    if (!response.ok) {
-      console.error("AtCoder API error:", response.status);
-      return [];
-    }
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (data.status !== "OK") return [];
 
-    const contests = await response.json();
-    const now = Math.floor(Date.now() / 1000);
-    
-    return contests
-      .filter((contest: { start_epoch_second: number }) => 
-        contest.start_epoch_second > now
-      )
-      .slice(0, 10)
-      .map((contest: { id: string; title: string; start_epoch_second: number; duration_second: number }) => ({
-        name: contest.title,
-        url: `https://atcoder.jp/contests/${contest.id}`,
-        start_time: new Date(contest.start_epoch_second * 1000).toISOString(),
-        duration: String(contest.duration_second),
-        site: "AtCoder",
-        status: "BEFORE",
+    return data.result
+      .filter((c: { phase: string }) => c.phase === "BEFORE" || c.phase === "CODING")
+      .slice(0, 20)
+      .map((c: { id: number; name: string; startTimeSeconds?: number; durationSeconds: number; phase: string }) => ({
+        name: c.name,
+        url: `https://codeforces.com/contest/${c.id}`,
+        start_time: c.startTimeSeconds ? new Date(c.startTimeSeconds * 1000).toISOString() : new Date().toISOString(),
+        duration: String(c.durationSeconds),
+        site: "CodeForces",
+        status: c.phase === "CODING" ? "CODING" : "BEFORE",
       }));
-  } catch (error) {
-    console.error("Error fetching AtCoder:", error);
+  } catch {
     return [];
   }
 }
 
-// Generate some upcoming LeetCode weekly contests (they follow a predictable schedule)
-function generateLeetCodeContests(): TransformedContest[] {
-  const contests: TransformedContest[] = [];
-  const now = new Date();
-  
-  // LeetCode Weekly: Every Sunday 10:30 AM UTC
-  // LeetCode Biweekly: Every other Saturday 2:30 PM UTC
-  
-  for (let i = 0; i < 4; i++) {
-    const nextSunday = new Date(now);
-    nextSunday.setDate(now.getDate() + ((7 - now.getDay()) % 7) + (i * 7));
-    nextSunday.setUTCHours(10, 30, 0, 0);
-    
-    if (nextSunday > now) {
-      const weekNumber = Math.floor((nextSunday.getTime() - new Date('2023-01-01').getTime()) / (7 * 24 * 60 * 60 * 1000)) + 330;
-      contests.push({
-        name: `Weekly Contest ${weekNumber}`,
-        url: "https://leetcode.com/contest/",
-        start_time: nextSunday.toISOString(),
-        duration: "5400", // 1.5 hours
-        site: "LeetCode",
-        status: "BEFORE",
-      });
-    }
+// ── Dedup & merge ─────────────────────────────────────────
+function dedup(contests: TransformedContest[]): TransformedContest[] {
+  const seen = new Map<string, TransformedContest>();
+  for (const c of contests) {
+    const key = `${c.name.toLowerCase().trim()}|${c.start_time}`;
+    if (!seen.has(key)) seen.set(key, c);
   }
-  
-  return contests;
-}
-
-// Generate CodeChef contests (they have regular starters)
-function generateCodeChefContests(): TransformedContest[] {
-  const contests: TransformedContest[] = [];
-  const now = new Date();
-  
-  // CodeChef Starters: Every Wednesday 8:00 PM IST (2:30 PM UTC)
-  for (let i = 0; i < 4; i++) {
-    const nextWednesday = new Date(now);
-    const daysUntilWed = (3 - now.getDay() + 7) % 7 || 7;
-    nextWednesday.setDate(now.getDate() + daysUntilWed + (i * 7));
-    nextWednesday.setUTCHours(14, 30, 0, 0);
-    
-    if (nextWednesday > now) {
-      const starterNumber = 170 + i;
-      contests.push({
-        name: `Starters ${starterNumber}`,
-        url: "https://www.codechef.com/contests",
-        start_time: nextWednesday.toISOString(),
-        duration: "7200", // 2 hours
-        site: "CodeChef",
-        status: "BEFORE",
-      });
-    }
-  }
-  
-  return contests;
+  return Array.from(seen.values());
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Fetching contests from multiple APIs...");
-    
-    // Fetch from multiple sources in parallel
-    const [codeforces, atcoder] = await Promise.all([
-      fetchCodeforcesContests(),
-      fetchAtCoderContests(),
-    ]);
-    
-    // Add generated contests for platforms without reliable APIs
-    const leetcode = generateLeetCodeContests();
-    const codechef = generateCodeChefContests();
-    
-    const allContests = [...codeforces, ...atcoder, ...leetcode, ...codechef];
-    
-    console.log(`Total contests fetched: ${allContests.length}`);
-    console.log(`- Codeforces: ${codeforces.length}`);
-    console.log(`- AtCoder: ${atcoder.length}`);
-    console.log(`- LeetCode: ${leetcode.length}`);
-    console.log(`- CodeChef: ${codechef.length}`);
+    console.log("Fetching contests from CLIST + fallback APIs...");
 
-    // Sort by start time
-    allContests.sort((a, b) => 
-      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
+    const [clistContests, cfContests] = await Promise.all([
+      fetchClistContests(),
+      fetchCodeforcesContests(),
+    ]);
+
+    // Merge: CLIST first (authoritative), then CF fallback
+    const merged = dedup([...clistContests, ...cfContests]);
+    merged.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+    console.log(`Total unique contests: ${merged.length} (CLIST: ${clistContests.length}, CF fallback: ${cfContests.length})`);
 
     return new Response(
-      JSON.stringify({ contests: allContests }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ contests: merged }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error fetching contests:", errorMessage);
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching contests:", msg);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: msg }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
