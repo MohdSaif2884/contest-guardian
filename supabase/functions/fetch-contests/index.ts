@@ -32,7 +32,8 @@ async function fetchClistContests(): Promise<TransformedContest[]> {
   const resources = [
     "codeforces.com", "leetcode.com", "codechef.com", "atcoder.jp",
     "hackerrank.com", "hackerearth.com", "topcoder.com",
-    "kaggle.com", "codesignal.com",
+    "kaggle.com", "codesignal.com", "codingninjas.com",
+    "geeksforgeeks.org", "interviewbit.com",
   ];
 
   const now = new Date().toISOString();
@@ -91,6 +92,9 @@ function mapClistResource(host: string): string {
     "topcoder.com": "TopCoder",
     "kaggle.com": "Kaggle",
     "codesignal.com": "CodeSignal",
+    "codingninjas.com": "CodeStudio",
+    "geeksforgeeks.org": "GeeksforGeeks",
+    "interviewbit.com": "InterviewBit",
   };
   return map[host] || host;
 }

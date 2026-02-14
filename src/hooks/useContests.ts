@@ -25,6 +25,9 @@ const platformConfig: Record<string, { color: string; initial: string; displayNa
   topcoder: { color: "from-cyan-500 to-blue-600", initial: "TC", displayName: "TopCoder" },
   kaggle: { color: "from-sky-400 to-blue-500", initial: "KG", displayName: "Kaggle" },
   codesignal: { color: "from-violet-500 to-purple-600", initial: "CS", displayName: "CodeSignal" },
+  codestudio: { color: "from-orange-500 to-red-500", initial: "CN", displayName: "CodeStudio" },
+  geeksforgeeks: { color: "from-green-600 to-green-700", initial: "GF", displayName: "GeeksforGeeks" },
+  interviewbit: { color: "from-teal-500 to-cyan-600", initial: "IB", displayName: "InterviewBit" },
 };
 
 const formatDuration = (seconds: number): string => {
