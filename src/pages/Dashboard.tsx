@@ -25,6 +25,7 @@ import PlatformFilter from "@/components/dashboard/PlatformFilter";
 import ReminderOffsets from "@/components/dashboard/ReminderOffsets";
 import NotificationChannels from "@/components/dashboard/NotificationChannels";
 import MonthlyStats from "@/components/dashboard/MonthlyStats";
+import { useMonthlyStats } from "@/hooks/useMonthlyStats";
 import WhatsAppSetup from "@/components/dashboard/WhatsAppSetup";
 import UpcomingContestsList from "@/components/dashboard/UpcomingContestsList";
 import { useAlarm } from "@/hooks/useAlarm";
@@ -47,6 +48,7 @@ const Dashboard = () => {
   const { contests, loading, error, refetch, toggleSubscription } = useContests();
   const { user, signOut } = useAuth();
   const { profile, isAdmin } = useProfile();
+  const { attendanceRate, remindersSent } = useMonthlyStats();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -258,7 +260,7 @@ const Dashboard = () => {
               </motion.div>
 
               <div className="grid lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-2 space-y-4">
                   <UpcomingContestsList
                     contests={contests}
                     onSubscribe={toggleSubscription}
@@ -267,7 +269,7 @@ const Dashboard = () => {
                   />
                   
                   {error && (
-                    <div className="mt-4 glass-card p-4 text-center">
+                    <div className="glass-card p-4 text-center">
                       <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
                       <p className="text-sm text-destructive">{error}</p>
                       <Button variant="glass" size="sm" onClick={refetch} className="mt-3">
@@ -275,13 +277,14 @@ const Dashboard = () => {
                       </Button>
                     </div>
                   )}
+
+                  <MonthlyStats attendanceRate={attendanceRate} remindersSent={remindersSent} />
                 </div>
 
                 <div className="space-y-4">
                   <ReminderOffsets />
                   <NotificationChannels />
                   <WhatsAppSetup isPro={isPro} />
-                  <MonthlyStats attendanceRate={94} remindersSent={23} />
                 </div>
               </div>
             </>
