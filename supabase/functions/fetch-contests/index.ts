@@ -22,6 +22,13 @@ async function fetchClistContests(): Promise<TransformedContest[]> {
     return [];
   }
 
+  // CLIST_API_KEY should be in format "username:api_key"
+  const [username, key] = apiKey.includes(":") ? apiKey.split(":", 2) : ["", apiKey];
+  if (!username || !key) {
+    console.error("CLIST_API_KEY must be in 'username:api_key' format");
+    return [];
+  }
+
   const resources = [
     "codeforces.com", "leetcode.com", "codechef.com", "atcoder.jp",
     "hackerrank.com", "hackerearth.com", "topcoder.com",
@@ -30,6 +37,8 @@ async function fetchClistContests(): Promise<TransformedContest[]> {
 
   const now = new Date().toISOString();
   const params = new URLSearchParams({
+    username,
+    api_key: key,
     upcoming: "true",
     start__gt: now,
     order_by: "start",
@@ -38,16 +47,9 @@ async function fetchClistContests(): Promise<TransformedContest[]> {
   });
 
   try {
-    // CLIST API expects "ApiKey username:key" format
     const response = await fetch(
       `https://clist.by/api/v4/contest/?${params}`,
-      {
-        headers: { Authorization: `ApiKey ${apiKey}` },
-        signal: AbortSignal.timeout(15000),
-      }
-    );
-        signal: AbortSignal.timeout(15000),
-      }
+      { signal: AbortSignal.timeout(15000) }
     );
 
     if (!response.ok) {
