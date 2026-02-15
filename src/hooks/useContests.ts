@@ -13,6 +13,7 @@ export interface Contest {
   duration: string;
   link: string;
   isSubscribed: boolean;
+  isAutoEnabled?: boolean;
 }
 
 const platformConfig: Record<string, { color: string; initial: string; displayName: string }> = {
@@ -43,20 +44,29 @@ export const useContests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscribedIds, setSubscribedIds] = useState<Set<string>>(new Set());
+  const [autoReminderPlatforms, setAutoReminderPlatforms] = useState<string[]>([]);
   const { user } = useAuth();
 
   // Load user's subscriptions from DB
   const loadSubscriptions = useCallback(async () => {
     if (!user) return;
     try {
-      const { data } = await supabase
-        .from("contest_subscriptions")
-        .select("contest_id")
-        .eq("user_id", user.id);
+      const [{ data: subs }, { data: profileData }] = await Promise.all([
+        supabase
+          .from("contest_subscriptions")
+          .select("contest_id")
+          .eq("user_id", user.id),
+        supabase
+          .from("profiles")
+          .select("auto_reminder_platforms")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ]);
 
-      if (data) {
-        setSubscribedIds(new Set(data.map(s => s.contest_id)));
+      if (subs) {
+        setSubscribedIds(new Set(subs.map(s => s.contest_id)));
       }
+      setAutoReminderPlatforms(((profileData as any)?.auto_reminder_platforms as string[]) || []);
     } catch (err) {
       console.error("Error loading subscriptions:", err);
     }
@@ -95,6 +105,7 @@ export const useContests = () => {
             duration: formatDuration(contest.duration),
             link: contest.url,
             isSubscribed: subscribedIds.has(contest.id),
+            isAutoEnabled: autoReminderPlatforms.includes(site),
           };
         });
 

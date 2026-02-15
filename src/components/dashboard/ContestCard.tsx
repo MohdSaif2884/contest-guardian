@@ -13,6 +13,7 @@ interface ContestCardProps {
   duration: string;
   link: string;
   isSubscribed?: boolean;
+  isAutoEnabled?: boolean;
   onToggleSubscription?: (id: string) => void;
 }
 
@@ -26,6 +27,7 @@ const ContestCard = ({
   duration,
   link,
   isSubscribed = false,
+  isAutoEnabled = false,
   onToggleSubscription,
 }: ContestCardProps) => {
   const handleToggle = () => {
@@ -110,11 +112,11 @@ const ContestCard = ({
         </a>
       </div>
 
-      {isSubscribed && (
-        <div className="mt-4 pt-4 border-t border-white/10">
+      {(isSubscribed || isAutoEnabled) && (
+        <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs text-success">
             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            Reminders set: 30 min, 10 min before
+            {isAutoEnabled ? "🔔 Auto-enabled" : "Reminders set"}
           </span>
         </div>
       )}

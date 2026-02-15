@@ -15,6 +15,7 @@ export interface Profile {
   rating_codechef: number | null;
   rating_leetcode: number | null;
   preferred_platforms: string[];
+  auto_reminder_platforms: string[];
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +47,7 @@ export const useProfile = () => {
           reminder_offsets: (data.reminder_offsets as number[]) || [30, 60],
           notification_channels: (data.notification_channels as Record<string, boolean>) || { email: true, browser: true, whatsapp: false },
           preferred_platforms: data.preferred_platforms || ["codeforces", "leetcode", "codechef", "atcoder"],
+          auto_reminder_platforms: (data as any).auto_reminder_platforms || [],
         });
       }
 
@@ -69,7 +71,7 @@ export const useProfile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, "full_name" | "phone_number" | "reminder_offsets" | "notification_channels" | "rating_codeforces" | "rating_codechef" | "rating_leetcode" | "preferred_platforms">>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, "full_name" | "phone_number" | "reminder_offsets" | "notification_channels" | "rating_codeforces" | "rating_codechef" | "rating_leetcode" | "preferred_platforms" | "auto_reminder_platforms">>) => {
     if (!user) return;
 
     try {
