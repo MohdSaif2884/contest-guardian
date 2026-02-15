@@ -23,6 +23,7 @@ import ReminderSettings from "@/components/dashboard/ReminderSettings";
 import AlarmNotification from "@/components/alarm/AlarmNotification";
 import PlatformFilter from "@/components/dashboard/PlatformFilter";
 import ReminderOffsets from "@/components/dashboard/ReminderOffsets";
+import PlatformAutoReminders from "@/components/dashboard/PlatformAutoReminders";
 import NotificationChannels from "@/components/dashboard/NotificationChannels";
 import MonthlyStats from "@/components/dashboard/MonthlyStats";
 import { useMonthlyStats } from "@/hooks/useMonthlyStats";
@@ -284,6 +285,7 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <ReminderOffsets />
                   <NotificationChannels />
+                  <PlatformAutoReminders />
                   <WhatsAppSetup isPro={isPro} />
                 </div>
               </div>

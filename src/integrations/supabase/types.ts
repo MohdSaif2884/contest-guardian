@@ -87,6 +87,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auto_reminder_platforms: string[] | null
           created_at: string
           full_name: string | null
           id: string
@@ -102,6 +103,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_reminder_platforms?: string[] | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -117,6 +119,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_reminder_platforms?: string[] | null
           created_at?: string
           full_name?: string | null
           id?: string

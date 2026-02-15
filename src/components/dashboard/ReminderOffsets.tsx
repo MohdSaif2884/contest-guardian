@@ -41,10 +41,22 @@ const ReminderOffsets = () => {
             className="flex items-center justify-between"
           >
             <span className="text-sm">{offset.label}</span>
-            <Switch
-              checked={activeOffsets.includes(offset.minutes)}
-              onCheckedChange={() => toggleOffset(offset.minutes)}
-            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleOffset(offset.minutes);
+              }}
+              className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
+                activeOffsets.includes(offset.minutes)
+                  ? "bg-primary text-white"
+                  : "border border-white/20 bg-white/5"
+              }`}
+            >
+              {activeOffsets.includes(offset.minutes) && (
+                <span className="text-[10px]">✓</span>
+              )}
+            </button>
           </div>
         ))}
       </div>

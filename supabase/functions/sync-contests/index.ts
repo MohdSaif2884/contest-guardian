@@ -100,7 +100,6 @@ async function fetchLeetCode(): Promise<NormalizedContest[]> {
     console.warn("LeetCode GraphQL failed, using fallback:", e);
   }
 
-  // Fallback: generate based on predictable schedule
   return generateLeetCodeFallback();
 }
 
@@ -147,7 +146,7 @@ async function fetchCodeChef(): Promise<NormalizedContest[]> {
           name: c.contest_name,
           url: `https://www.codechef.com/${c.contest_code}`,
           start_time: new Date(c.contest_start_date_iso || c.contest_start_date).toISOString(),
-          duration: (c.contest_duration || 120) * 60, // minutes to seconds
+          duration: (c.contest_duration || 120) * 60,
           platform: "CodeChef",
           external_id: `cc-${c.contest_code}`,
         }));
@@ -183,6 +182,158 @@ function generateCodeChefFallback(): NormalizedContest[] {
   return contests;
 }
 
+// ── CLIST API (for additional platforms) ────────────────
+async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
+  const apiKey = Deno.env.get("CLIST_API_KEY");
+  if (!apiKey) return [];
+
+  const [username, key] = apiKey.includes(":") ? apiKey.split(":", 2) : ["", apiKey];
+  if (!username || !key) return [];
+
+  // Only fetch platforms not covered by direct APIs
+  const resources = [
+    "hackerrank.com", "hackerearth.com", "topcoder.com",
+    "kaggle.com", "codesignal.com", "codingninjas.com",
+    "geeksforgeeks.org", "interviewbit.com",
+  ];
+
+  const resourceMap: Record<string, string> = {
+    "hackerrank.com": "HackerRank",
+    "hackerearth.com": "HackerEarth",
+    "topcoder.com": "TopCoder",
+    "kaggle.com": "Kaggle",
+    "codesignal.com": "CodeSignal",
+    "codingninjas.com": "CodeStudio",
+    "geeksforgeeks.org": "GeeksforGeeks",
+    "interviewbit.com": "InterviewBit",
+  };
+
+  const now = new Date().toISOString();
+  const params = new URLSearchParams({
+    username,
+    api_key: key,
+    upcoming: "true",
+    start__gt: now,
+    order_by: "start",
+    limit: "100",
+    resource__name__in: resources.join(","),
+  });
+
+  try {
+    const res = await fetch(`https://clist.by/api/v4/contest/?${params}`, {
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) { console.error("CLIST API error:", res.status); return []; }
+    const data = await res.json();
+
+    return (data.objects || []).map((c: any) => {
+      const host = c.resource?.name || "";
+      const platform = resourceMap[host] || host;
+      return {
+        name: c.event,
+        url: c.href,
+        start_time: new Date(c.start).toISOString(),
+        duration: c.duration,
+        platform,
+        external_id: `clist-${c.id}`,
+      };
+    });
+  } catch (e) { console.error("CLIST fetch error:", e); return []; }
+}
+
+// ── Auto-subscribe users with platform auto-reminders ───
+async function autoSubscribeUsers(supabase: any, contests: NormalizedContest[]) {
+  if (contests.length === 0) return;
+
+  // Get all users with auto_reminder_platforms set
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, auto_reminder_platforms, reminder_offsets, notification_channels")
+    .not("auto_reminder_platforms", "eq", "{}");
+
+  if (!profiles || profiles.length === 0) return;
+
+  const platformMap: Record<string, string> = {
+    "CodeForces": "codeforces",
+    "LeetCode": "leetcode",
+    "CodeChef": "codechef",
+    "AtCoder": "atcoder",
+    "HackerEarth": "hackerearth",
+    "HackerRank": "hackerrank",
+    "Kaggle": "kaggle",
+    "TopCoder": "topcoder",
+    "CodeSignal": "codesignal",
+    "CodeStudio": "codestudio",
+    "GeeksforGeeks": "geeksforgeeks",
+    "InterviewBit": "interviewbit",
+  };
+
+  // Get contest IDs from DB
+  const contestExternalIds = contests.map(c => c.external_id);
+  const { data: dbContests } = await supabase
+    .from("contests")
+    .select("id, platform, external_id")
+    .in("external_id", contestExternalIds);
+
+  if (!dbContests || dbContests.length === 0) return;
+
+  const subscriptions: any[] = [];
+  const reminders: any[] = [];
+
+  for (const profile of profiles) {
+    const autoPlatforms: string[] = profile.auto_reminder_platforms || [];
+    const offsets: number[] = profile.reminder_offsets || [30, 60];
+    const channels: Record<string, boolean> = profile.notification_channels || { browser: true };
+    const activeChannels = Object.entries(channels).filter(([_, v]) => v).map(([k]) => k);
+    if (activeChannels.length === 0) activeChannels.push("browser");
+
+    for (const contest of dbContests) {
+      const platformKey = platformMap[contest.platform];
+      if (!platformKey || !autoPlatforms.includes(platformKey)) continue;
+
+      subscriptions.push({
+        user_id: profile.user_id,
+        contest_id: contest.id,
+      });
+
+      // Find the original contest data for start_time
+      const originalContest = contests.find(c => c.external_id === contest.external_id);
+      if (!originalContest) continue;
+
+      for (const offset of offsets) {
+        for (const channel of activeChannels) {
+          const reminderTime = new Date(new Date(originalContest.start_time).getTime() - offset * 60 * 1000);
+          if (reminderTime > new Date()) {
+            reminders.push({
+              user_id: profile.user_id,
+              contest_id: contest.id,
+              reminder_time: reminderTime.toISOString(),
+              channel,
+              status: "pending",
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Upsert subscriptions (ignore duplicates)
+  if (subscriptions.length > 0) {
+    const { error } = await supabase
+      .from("contest_subscriptions")
+      .upsert(subscriptions, { onConflict: "user_id,contest_id", ignoreDuplicates: true });
+    if (error) console.error("Auto-subscribe upsert error:", error);
+    else console.log(`✅ Auto-subscribed ${subscriptions.length} user-contest pairs`);
+  }
+
+  if (reminders.length > 0) {
+    const { error } = await supabase.from("reminders").insert(reminders);
+    if (error && !error.message?.includes("duplicate")) {
+      console.error("Auto-reminder insert error:", error);
+    }
+  }
+}
+
 // ── Main Handler ────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -207,16 +358,17 @@ serve(async (req) => {
   try {
     console.log("🔄 Starting contest sync...");
 
-    // Fetch all platforms in parallel with retry
+    // Fetch all platforms in parallel
     const results = await Promise.allSettled([
       fetchWithRetry(fetchCodeforces, "CodeForces"),
       fetchWithRetry(fetchAtCoder, "AtCoder"),
       fetchWithRetry(fetchLeetCode, "LeetCode"),
       fetchWithRetry(fetchCodeChef, "CodeChef"),
+      fetchWithRetry(fetchClistPlatforms, "CLIST"),
     ]);
 
     const allContests: NormalizedContest[] = [];
-    const platformNames = ["CodeForces", "AtCoder", "LeetCode", "CodeChef"];
+    const platformNames = ["CodeForces", "AtCoder", "LeetCode", "CodeChef", "CLIST"];
 
     results.forEach((result, i) => {
       if (result.status === "fulfilled") {
@@ -231,7 +383,7 @@ serve(async (req) => {
 
     // Upsert into DB (dedup by platform + external_id)
     if (allContests.length > 0) {
-      const { error: upsertError, count } = await supabase
+      const { error: upsertError } = await supabase
         .from("contests")
         .upsert(
           allContests.map(c => ({
@@ -250,6 +402,9 @@ serve(async (req) => {
         errors.push(`Upsert: ${upsertError.message}`);
       }
       totalSynced = allContests.length;
+
+      // Auto-subscribe users who have platform auto-reminders enabled
+      await autoSubscribeUsers(supabase, allContests);
     }
 
     // Clean up old contests (past by more than 24h)
@@ -294,7 +449,7 @@ serve(async (req) => {
   }
 });
 
-// Retry wrapper: tries up to 3 times with backoff
+// Retry wrapper
 async function fetchWithRetry(
   fn: () => Promise<NormalizedContest[]>,
   label: string,
@@ -306,7 +461,7 @@ async function fetchWithRetry(
     } catch (e) {
       console.warn(`${label} attempt ${attempt}/${retries} failed:`, e);
       if (attempt === retries) throw e;
-      await new Promise(r => setTimeout(r, 1000 * attempt)); // backoff
+      await new Promise(r => setTimeout(r, 1000 * attempt));
     }
   }
   return [];
