@@ -75,18 +75,37 @@ export const useProfile = () => {
     if (!user) return;
 
     try {
+      // Use upsert so profile is created if it doesn't exist yet
       const { error } = await supabase
         .from("profiles")
-        .update(updates)
-        .eq("user_id", user.id);
+        .upsert(
+          { user_id: user.id, ...updates },
+          { onConflict: "user_id" }
+        );
 
       if (error) throw error;
 
-      setProfile((prev) => prev ? { ...prev, ...updates } : prev);
-      toast.success("Profile updated!");
+      setProfile((prev) => prev ? { ...prev, ...updates } : {
+        id: "",
+        user_id: user.id,
+        full_name: null,
+        phone_number: null,
+        reminder_offsets: [30, 60],
+        notification_channels: { email: true, browser: true, whatsapp: false },
+        subscription_status: "free",
+        rating_codeforces: null,
+        rating_codechef: null,
+        rating_leetcode: null,
+        preferred_platforms: ["codeforces", "leetcode", "codechef", "atcoder"],
+        auto_reminder_platforms: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...updates,
+      } as Profile);
+      toast.success("Settings saved!");
     } catch (err) {
       console.error("Error updating profile:", err);
-      toast.error("Failed to update profile");
+      toast.error("Failed to save settings");
     }
   };
 

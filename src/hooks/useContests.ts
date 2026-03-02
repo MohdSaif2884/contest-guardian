@@ -82,7 +82,7 @@ export const useContests = () => {
         .select("*")
         .gte("start_time", new Date().toISOString())
         .order("start_time", { ascending: true })
-        .limit(100);
+        .limit(500);
 
       if (dbError) throw new Error(dbError.message);
 
