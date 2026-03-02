@@ -185,16 +185,17 @@ function generateCodeChefFallback(): NormalizedContest[] {
 // ── CLIST API (for additional platforms) ────────────────
 async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
   const apiKey = Deno.env.get("CLIST_API_KEY");
-  if (!apiKey) return [];
+  if (!apiKey) { console.warn("CLIST_API_KEY not set"); return []; }
 
   const [username, key] = apiKey.includes(":") ? apiKey.split(":", 2) : ["", apiKey];
-  if (!username || !key) return [];
+  if (!username || !key) { console.warn("CLIST_API_KEY format invalid, expected 'username:api_key', got length:", apiKey.length); return []; }
 
-  // Only fetch platforms not covered by direct APIs
+  // Fetch platforms not covered by direct APIs, plus atcoder/kaggle as backup
   const resources = [
     "hackerrank.com", "hackerearth.com", "topcoder.com",
     "kaggle.com", "codesignal.com", "codingninjas.com",
     "geeksforgeeks.org", "interviewbit.com",
+    "atcoder.jp", "codeforces.com", "leetcode.com", "codechef.com",
   ];
 
   const resourceMap: Record<string, string> = {
@@ -206,6 +207,10 @@ async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
     "codingninjas.com": "CodeStudio",
     "geeksforgeeks.org": "GeeksforGeeks",
     "interviewbit.com": "InterviewBit",
+    "atcoder.jp": "AtCoder",
+    "codeforces.com": "CodeForces",
+    "leetcode.com": "LeetCode",
+    "codechef.com": "CodeChef",
   };
 
   const now = new Date().toISOString();
@@ -220,10 +225,16 @@ async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
   });
 
   try {
-    const res = await fetch(`https://clist.by/api/v4/contest/?${params}`, {
+    const url = `https://clist.by/api/v4/contest/?${params}`;
+    console.log(`CLIST URL: ${url.replace(key, "***")}`);
+    const res = await fetch(url, {
       signal: AbortSignal.timeout(15000),
     });
-    if (!res.ok) { console.error("CLIST API error:", res.status); return []; }
+    if (!res.ok) { 
+      const body = await res.text();
+      console.error("CLIST API error:", res.status, body); 
+      return []; 
+    }
     const data = await res.json();
 
     return (data.objects || []).map((c: any) => {
