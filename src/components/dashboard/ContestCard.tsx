@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, ExternalLink, Bell, BellOff, Timer, Gauge } from "lucide-react";
+import { Clock, ExternalLink, Timer, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -93,15 +93,11 @@ const ContestCard = ({
         </div>
         <Button
           variant={isSubscribed ? "success" : "glass"}
-          size="icon"
+          size="sm"
           onClick={handleToggle}
-          className="shrink-0"
+          className="shrink-0 text-xs"
         >
-          {isSubscribed ? (
-            <Bell className="h-4 w-4" />
-          ) : (
-            <BellOff className="h-4 w-4" />
-          )}
+          {isSubscribed ? "Subscribed" : "Subscribe"}
         </Button>
       </div>
 
@@ -142,11 +138,11 @@ const ContestCard = ({
         </a>
       </div>
 
-      {(isSubscribed || isAutoEnabled) && (
+      {isAutoEnabled && (
         <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs text-success">
             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            {isAutoEnabled ? "Auto-enabled" : "Reminders set"}
+            Auto-enabled
           </span>
         </div>
       )}
