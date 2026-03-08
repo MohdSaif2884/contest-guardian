@@ -146,7 +146,7 @@ const ContestCard = ({
         <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs text-success">
             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            {isAutoEnabled ? "🔔 Auto-enabled" : "Reminders set"}
+            {isAutoEnabled ? "Auto-enabled" : "Reminders set"}
           </span>
         </div>
       )}
