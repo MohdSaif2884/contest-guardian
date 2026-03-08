@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { Clock, ExternalLink, Bell, BellOff } from "lucide-react";
+import { Clock, ExternalLink, Bell, BellOff, Timer, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface ContestCardProps {
   id: string;
@@ -11,11 +11,25 @@ interface ContestCardProps {
   platformInitial: string;
   startTime: Date;
   duration: string;
+  durationMinutes?: number;
+  difficulty?: string | null;
   link: string;
   isSubscribed?: boolean;
   isAutoEnabled?: boolean;
   onToggleSubscription?: (id: string) => void;
 }
+
+const difficultyConfig: Record<string, { label: string; class: string }> = {
+  easy: { label: "Easy", class: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
+  medium: { label: "Medium", class: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
+  hard: { label: "Hard", class: "bg-red-500/15 text-red-400 border-red-500/20" },
+};
+
+const getDifficultyFromDuration = (minutes: number): string => {
+  if (minutes <= 90) return "easy";
+  if (minutes <= 180) return "medium";
+  return "hard";
+};
 
 const ContestCard = ({
   id,
@@ -25,6 +39,8 @@ const ContestCard = ({
   platformInitial,
   startTime,
   duration,
+  durationMinutes = 0,
+  difficulty,
   link,
   isSubscribed = false,
   isAutoEnabled = false,
@@ -39,22 +55,21 @@ const ContestCard = ({
   const getTimeUntilStart = () => {
     const now = new Date();
     const diff = startTime.getTime() - now.getTime();
-    
     if (diff < 0) return "Live Now";
-    
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
     if (hours > 24) {
       const days = Math.floor(hours / 24);
       return `${days}d ${hours % 24}h`;
     }
-    
     return `${hours}h ${minutes}m`;
   };
 
   const timeUntil = getTimeUntilStart();
   const isLive = timeUntil === "Live Now";
+
+  const diffKey = difficulty?.toLowerCase() || (durationMinutes > 0 ? getDifficultyFromDuration(durationMinutes) : null);
+  const diffStyle = diffKey ? difficultyConfig[diffKey] || null : null;
 
   return (
     <motion.div
@@ -90,6 +105,22 @@ const ContestCard = ({
         </Button>
       </div>
 
+      {/* Difficulty & Duration badges */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        {diffStyle && (
+          <Badge variant="outline" className={`text-[10px] border ${diffStyle.class} gap-1`}>
+            <Gauge className="h-3 w-3" />
+            {diffStyle.label}
+          </Badge>
+        )}
+        {duration && (
+          <Badge variant="outline" className="text-[10px] border-muted-foreground/20 text-muted-foreground gap-1">
+            <Timer className="h-3 w-3" />
+            {duration}
+          </Badge>
+        )}
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -100,7 +131,6 @@ const ContestCard = ({
               `Starts in ${timeUntil}`
             )}
           </span>
-          <span className="text-xs">{duration}</span>
         </div>
         <a
           href={link}

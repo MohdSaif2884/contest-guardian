@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import { Clock, ChevronRight, ChevronLeft, Timer, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Contest } from "@/hooks/useContests";
@@ -11,6 +11,23 @@ interface UpcomingContestItemProps {
   contest: Contest;
   onSubscribe: (id: string) => void;
 }
+
+const diffColors: Record<string, string> = {
+  easy: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  medium: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  hard: "bg-red-500/15 text-red-400 border-red-500/20",
+};
+const diffLabels: Record<string, string> = { easy: "Easy", medium: "Medium", hard: "Hard" };
+
+const getDiffKey = (contest: Contest): string | null => {
+  if (contest.difficulty) return contest.difficulty.toLowerCase();
+  if (contest.durationMinutes > 0) {
+    if (contest.durationMinutes <= 90) return "easy";
+    if (contest.durationMinutes <= 180) return "medium";
+    return "hard";
+  }
+  return null;
+};
 
 const UpcomingContestItem = ({ contest, onSubscribe }: UpcomingContestItemProps) => {
   const getTimeUntilStart = () => {
@@ -26,6 +43,8 @@ const UpcomingContestItem = ({ contest, onSubscribe }: UpcomingContestItemProps)
     return `${hours}h ${minutes}m`;
   };
 
+  const diffKey = getDiffKey(contest);
+
   return (
     <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors">
       <div className="flex items-center gap-3">
@@ -36,7 +55,7 @@ const UpcomingContestItem = ({ contest, onSubscribe }: UpcomingContestItemProps)
         </div>
         <div>
           <h4 className="font-medium text-sm line-clamp-1">{contest.name}</h4>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               Starts in {getTimeUntilStart()}
@@ -44,6 +63,18 @@ const UpcomingContestItem = ({ contest, onSubscribe }: UpcomingContestItemProps)
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
               {contest.platform}
             </Badge>
+            {diffKey && diffColors[diffKey] && (
+              <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 border ${diffColors[diffKey]} gap-0.5`}>
+                <Gauge className="h-2.5 w-2.5" />
+                {diffLabels[diffKey]}
+              </Badge>
+            )}
+            {contest.duration && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-muted-foreground/20 text-muted-foreground gap-0.5">
+                <Timer className="h-2.5 w-2.5" />
+                {contest.duration}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
