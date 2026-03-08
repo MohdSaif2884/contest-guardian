@@ -16,7 +16,7 @@ const majorPlatforms: Platform[] = [
   { id: "AtCoder", name: "AtCoder", initial: "AC", color: "from-gray-600 to-gray-700" },
   { id: "HackerEarth", name: "HackerEarth", initial: "HE", color: "from-indigo-500 to-purple-600" },
   { id: "HackerRank", name: "HackerRank", initial: "HR", color: "from-green-500 to-emerald-600" },
-  { id: "Kaggle", name: "Kaggle", initial: "KG", color: "from-sky-400 to-blue-500" },
+  
 ];
 
 const otherPlatforms: Platform[] = [
