@@ -93,15 +93,11 @@ const ContestCard = ({
         </div>
         <Button
           variant={isSubscribed ? "success" : "glass"}
-          size="icon"
+          size="sm"
           onClick={handleToggle}
-          className="shrink-0"
+          className="shrink-0 text-xs"
         >
-          {isSubscribed ? (
-            <Bell className="h-4 w-4" />
-          ) : (
-            <BellOff className="h-4 w-4" />
-          )}
+          {isSubscribed ? "Subscribed" : "Subscribe"}
         </Button>
       </div>
 
