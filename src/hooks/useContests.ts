@@ -105,6 +105,8 @@ export const useContests = () => {
             platformInitial: config.initial,
             startTime: new Date(contest.start_time),
             duration: formatDuration(contest.duration),
+            durationMinutes: Math.round(contest.duration / 60),
+            difficulty: contest.difficulty || null,
             link: contest.url,
             isSubscribed: subscribedIds.has(contest.id),
             isAutoEnabled: autoReminderPlatforms.includes(site),
