@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Explore from "./pages/Explore";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { initializeNativeApp, createNotificationChannel } from "./lib/capacitor";
