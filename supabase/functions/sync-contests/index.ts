@@ -202,7 +202,7 @@ async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
     "hackerrank.com": "HackerRank",
     "hackerearth.com": "HackerEarth",
     "topcoder.com": "TopCoder",
-    "kaggle.com": "Kaggle",
+    
     "codesignal.com": "CodeSignal",
     "codingninjas.com": "CodeStudio",
     "geeksforgeeks.org": "GeeksforGeeks",
