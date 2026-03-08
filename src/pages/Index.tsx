@@ -3,7 +3,6 @@ import HeroSection from "@/components/landing/HeroSection";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Platforms from "@/components/landing/Platforms";
 import Features from "@/components/landing/Features";
-import Pricing from "@/components/landing/Pricing";
 import Footer from "@/components/landing/Footer";
 
 const Index = () => {
@@ -14,7 +13,6 @@ const Index = () => {
       <HowItWorks />
       <Platforms />
       <Features />
-      <Pricing />
       <Footer />
     </div>
   );
