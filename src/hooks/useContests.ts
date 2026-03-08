@@ -11,6 +11,8 @@ export interface Contest {
   platformInitial: string;
   startTime: Date;
   duration: string;
+  durationMinutes: number;
+  difficulty: string | null;
   link: string;
   isSubscribed: boolean;
   isAutoEnabled?: boolean;
@@ -103,6 +105,8 @@ export const useContests = () => {
             platformInitial: config.initial,
             startTime: new Date(contest.start_time),
             duration: formatDuration(contest.duration),
+            durationMinutes: Math.round(contest.duration / 60),
+            difficulty: contest.difficulty || null,
             link: contest.url,
             isSubscribed: subscribedIds.has(contest.id),
             isAutoEnabled: autoReminderPlatforms.includes(site),
@@ -127,6 +131,7 @@ export const useContests = () => {
           displayName: contest.site,
         };
 
+        const durSec = parseInt(contest.duration) || 0;
         return {
           id: `${site}-${index}-${contest.name.substring(0, 10)}`,
           name: contest.name,
@@ -134,7 +139,9 @@ export const useContests = () => {
           platformColor: config.color,
           platformInitial: config.initial,
           startTime: new Date(contest.start_time),
-          duration: formatDuration(parseInt(contest.duration) || 0),
+          duration: formatDuration(durSec),
+          durationMinutes: Math.round(durSec / 60),
+          difficulty: contest.difficulty || null,
           link: contest.url,
           isSubscribed: false,
         };
