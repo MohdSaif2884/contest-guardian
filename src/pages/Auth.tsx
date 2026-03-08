@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -18,6 +20,28 @@ const Auth = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Password reset link sent! Check your email.");
+        setIsForgotPassword(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
