@@ -11,6 +11,8 @@ export interface Contest {
   platformInitial: string;
   startTime: Date;
   duration: string;
+  durationMinutes: number;
+  difficulty: string | null;
   link: string;
   isSubscribed: boolean;
   isAutoEnabled?: boolean;
