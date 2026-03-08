@@ -26,7 +26,7 @@ const platformConfig: Record<string, { color: string; initial: string; displayNa
   hackerrank: { color: "from-green-500 to-emerald-600", initial: "HR", displayName: "HackerRank" },
   hackerearth: { color: "from-indigo-500 to-purple-600", initial: "HE", displayName: "HackerEarth" },
   topcoder: { color: "from-cyan-500 to-blue-600", initial: "TC", displayName: "TopCoder" },
-  kaggle: { color: "from-sky-400 to-blue-500", initial: "KG", displayName: "Kaggle" },
+  
   codesignal: { color: "from-violet-500 to-purple-600", initial: "CS", displayName: "CodeSignal" },
   codestudio: { color: "from-orange-500 to-red-500", initial: "CN", displayName: "CodeStudio" },
   geeksforgeeks: { color: "from-green-600 to-green-700", initial: "GF", displayName: "GeeksforGeeks" },

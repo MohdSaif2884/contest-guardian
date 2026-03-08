@@ -190,10 +190,10 @@ async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
   const [username, key] = apiKey.includes(":") ? apiKey.split(":", 2) : ["", apiKey];
   if (!username || !key) { console.warn("CLIST_API_KEY format invalid, expected 'username:api_key', got length:", apiKey.length); return []; }
 
-  // Fetch platforms not covered by direct APIs, plus atcoder/kaggle as backup
+  // Fetch platforms not covered by direct APIs, plus atcoder as backup
   const resources = [
     "hackerrank.com", "hackerearth.com", "topcoder.com",
-    "kaggle.com", "codesignal.com", "codingninjas.com",
+    "codesignal.com", "codingninjas.com",
     "geeksforgeeks.org", "interviewbit.com",
     "atcoder.jp", "codeforces.com", "leetcode.com", "codechef.com",
   ];
@@ -202,7 +202,7 @@ async function fetchClistPlatforms(): Promise<NormalizedContest[]> {
     "hackerrank.com": "HackerRank",
     "hackerearth.com": "HackerEarth",
     "topcoder.com": "TopCoder",
-    "kaggle.com": "Kaggle",
+    
     "codesignal.com": "CodeSignal",
     "codingninjas.com": "CodeStudio",
     "geeksforgeeks.org": "GeeksforGeeks",
@@ -271,7 +271,7 @@ async function autoSubscribeUsers(supabase: any, contests: NormalizedContest[]) 
     "AtCoder": "atcoder",
     "HackerEarth": "hackerearth",
     "HackerRank": "hackerrank",
-    "Kaggle": "kaggle",
+    
     "TopCoder": "topcoder",
     "CodeSignal": "codesignal",
     "CodeStudio": "codestudio",
