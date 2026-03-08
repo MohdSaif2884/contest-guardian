@@ -291,6 +291,8 @@ const Auth = () => {
               {isLogin ? "Sign Up" : "Sign In"}
             </button>
           </p>
+            </>
+          )}
         </div>
       </motion.div>
     </div>
