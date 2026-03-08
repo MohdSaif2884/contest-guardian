@@ -56,7 +56,7 @@ const PlatformAutoReminders = () => {
                 <span className="text-sm">{platform.label}</span>
                 {isActive && (
                   <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
-                    🔔 Auto
+                    Auto
                   </Badge>
                 )}
               </div>
