@@ -131,6 +131,7 @@ export const useContests = () => {
           displayName: contest.site,
         };
 
+        const durSec = parseInt(contest.duration) || 0;
         return {
           id: `${site}-${index}-${contest.name.substring(0, 10)}`,
           name: contest.name,
@@ -138,7 +139,9 @@ export const useContests = () => {
           platformColor: config.color,
           platformInitial: config.initial,
           startTime: new Date(contest.start_time),
-          duration: formatDuration(parseInt(contest.duration) || 0),
+          duration: formatDuration(durSec),
+          durationMinutes: Math.round(durSec / 60),
+          difficulty: contest.difficulty || null,
           link: contest.url,
           isSubscribed: false,
         };
