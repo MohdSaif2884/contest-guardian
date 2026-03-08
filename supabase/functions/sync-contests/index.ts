@@ -271,7 +271,7 @@ async function autoSubscribeUsers(supabase: any, contests: NormalizedContest[]) 
     "AtCoder": "atcoder",
     "HackerEarth": "hackerearth",
     "HackerRank": "hackerrank",
-    "Kaggle": "kaggle",
+    
     "TopCoder": "topcoder",
     "CodeSignal": "codesignal",
     "CodeStudio": "codestudio",
