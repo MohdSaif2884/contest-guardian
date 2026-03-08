@@ -22,7 +22,7 @@ const Footer = () => {
       { name: "Contact", href: "#" },
     ],
     Legal: [
-      { name: "Privacy", href: "#" },
+      { name: "Privacy", href: "/privacy" },
       { name: "Terms", href: "#" },
       { name: "Cookies", href: "#" },
     ],
