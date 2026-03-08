@@ -121,13 +121,57 @@ const Auth = () => {
 
           {/* Title */}
           <h1 className="text-2xl font-bold text-center mb-2">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isForgotPassword ? "Reset Password" : isLogin ? "Welcome Back" : "Create Account"}
           </h1>
           <p className="text-muted-foreground text-center mb-6">
-            {isLogin
+            {isForgotPassword
+              ? "Enter your email to receive a reset link"
+              : isLogin
               ? "Sign in to access your contest reminders"
               : "Join AlgoBell to never miss a contest"}
           </p>
+
+          {isForgotPassword ? (
+            <>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <Button type="submit" variant="hero" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
+                </Button>
+              </form>
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Back to Sign In
+                </button>
+              </p>
+            </>
+          ) : (
+            <>
 
           {/* Google OAuth */}
           <Button
