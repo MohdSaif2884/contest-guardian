@@ -218,19 +218,31 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <h1 className="text-2xl lg:text-3xl font-bold mb-1">
-              {activeTab === "dashboard" && "Dashboard"}
-              {activeTab === "contests" && "Contest Explorer"}
-              {activeTab === "settings" && "Reminder Settings"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {activeTab === "dashboard" &&
-                "Track your upcoming contests and performance at a glance."}
-              {activeTab === "contests" &&
-                "Browse and subscribe to contests from all platforms."}
-              {activeTab === "settings" &&
-                "Customize when and how you receive notifications."}
-            </p>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold mb-1">
+                  {activeTab === "dashboard" && "Dashboard"}
+                  {activeTab === "contests" && "Contest Explorer"}
+                  {activeTab === "settings" && "Reminder Settings"}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {activeTab === "dashboard" &&
+                    "Track your upcoming contests and performance at a glance."}
+                  {activeTab === "contests" &&
+                    "Browse and subscribe to contests from all platforms."}
+                  {activeTab === "settings" &&
+                    "Customize when and how you receive notifications."}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="glass" size="sm" className="gap-2" asChild>
+                  <Link to="/"><Home className="h-4 w-4" /> Home</Link>
+                </Button>
+                <Button variant="glass" size="sm" className="gap-2" asChild>
+                  <Link to="/explore"><Compass className="h-4 w-4" /> Contest Explorer</Link>
+                </Button>
+              </div>
+            </div>
           </motion.div>
 
           {/* Dashboard View */}
