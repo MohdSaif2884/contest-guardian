@@ -100,12 +100,12 @@ const PlatformFilter = ({ selected, onSelect, contestCounts = {} }: PlatformFilt
   const hasOtherContests = otherPlatforms.some((p) => (contestCounts[p.id] || 0) > 0);
 
   return (
-    <div className="space-y-3 mb-6">
+    <div className="space-y-2 sm:space-y-3">
       <div>
-        <span className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 block">
+        <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mb-1 sm:mb-1.5 block">
           Major Platforms
         </span>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
           {majorPlatforms.map((platform) => (
             <PlatformButton
               key={platform.id}
@@ -120,10 +120,10 @@ const PlatformFilter = ({ selected, onSelect, contestCounts = {} }: PlatformFilt
 
       {(hasOtherContests || otherPlatforms.some((p) => selected === p.id)) && (
         <div>
-          <span className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5 block">
+          <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mb-1 sm:mb-1.5 block">
             Others
           </span>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
             {otherPlatforms.map((platform) => (
               <PlatformButton
                 key={platform.id}
