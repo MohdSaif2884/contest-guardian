@@ -90,24 +90,24 @@ const Explore = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-6 space-y-4"
+          className="mb-4 sm:mb-6 space-y-3 sm:space-y-4"
         >
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search contests by name or platform..."
+                placeholder="Search contests..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-secondary/30 border-white/10"
+                className="pl-10 bg-secondary/30 border-white/10 h-9 sm:h-10 text-sm"
               />
             </div>
             <Button
               variant={showSubscribedOnly ? "hero" : "glass"}
               onClick={() => setShowSubscribedOnly(!showSubscribedOnly)}
-              className="gap-2 shrink-0"
+              className="gap-1.5 shrink-0 h-9 sm:h-10 text-xs sm:text-sm"
             >
-              <Bell className="h-4 w-4" />
+              <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {showSubscribedOnly ? "Subscribed" : "My Subscriptions"}
             </Button>
           </div>
@@ -120,9 +120,9 @@ const Explore = () => {
         </motion.div>
 
         {/* Results Count */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <Filter className="h-4 w-4" />
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 sm:gap-2">
+            <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {filteredContests.length} contest{filteredContests.length !== 1 ? "s" : ""} found
             {searchQuery && ` for "${searchQuery}"`}
           </p>
