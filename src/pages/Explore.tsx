@@ -66,12 +66,7 @@ const Explore = () => {
                 </Button>
               </Link>
             </div>
-            <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold truncate">Contest Explorer</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                Browse & subscribe to contests
-              </p>
-            </div>
+            <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold truncate">Contest Explorer</h1>
           </div>
           <Button
             variant="glass"
