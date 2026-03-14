@@ -46,30 +46,30 @@ const Explore = () => {
 
   return (
     <div className="min-h-screen bg-background dark">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
+          className="flex items-center justify-between mb-4 sm:mb-6 gap-2"
         >
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               <Link to="/">
-                <Button variant="ghost" size="icon" className="shrink-0" title="Home">
-                  <Home className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Home">
+                  <Home className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
               <Link to="/dashboard">
-                <Button variant="ghost" size="icon" className="shrink-0" title="Dashboard">
-                  <LayoutDashboard className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Dashboard">
+                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
             </div>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">Contest Explorer</h1>
-              <p className="text-sm text-muted-foreground">
-                Browse and subscribe to contests from all platforms
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold truncate">Contest Explorer</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                Browse & subscribe to contests
               </p>
             </div>
           </div>
@@ -78,10 +78,10 @@ const Explore = () => {
             size="sm"
             onClick={refetch}
             disabled={loading}
-            className="gap-2"
+            className="gap-1.5 shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </motion.div>
 
