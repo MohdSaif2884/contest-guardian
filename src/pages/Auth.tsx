@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { lovable } from "@/integrations/lovable/index";
+// import { lovable } from "@/integrations/lovable/index"; // lovable package handles dynamically
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
