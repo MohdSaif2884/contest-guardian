@@ -51,33 +51,38 @@ const Explore = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-4 sm:mb-6 gap-2"
+          className="mb-4 sm:mb-6"
         >
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              <Link to="/">
-                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Home">
-                  <Home className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Dashboard">
-                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              </Link>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                <Link to="/">
+                  <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Home">
+                    <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Button>
+                </Link>
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Dashboard">
+                    <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Button>
+                </Link>
+              </div>
+              <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold truncate">Contest Explorer</h1>
             </div>
-            <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold truncate">Contest Explorer</h1>
+            <Button
+              variant="glass"
+              size="sm"
+              onClick={refetch}
+              disabled={loading}
+              className="gap-1.5 shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
           </div>
-          <Button
-            variant="glass"
-            size="sm"
-            onClick={refetch}
-            disabled={loading}
-            className="gap-1.5 shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 ml-[76px] sm:ml-[84px]">
+            Browse & subscribe to contests from all platforms
+          </p>
         </motion.div>
 
         {/* Search & Filters */}
