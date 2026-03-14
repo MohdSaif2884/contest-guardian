@@ -46,30 +46,30 @@ const Explore = () => {
 
   return (
     <div className="min-h-screen bg-background dark">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6"
+          className="flex items-center justify-between mb-4 sm:mb-6 gap-2"
         >
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               <Link to="/">
-                <Button variant="ghost" size="icon" className="shrink-0" title="Home">
-                  <Home className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Home">
+                  <Home className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
               <Link to="/dashboard">
-                <Button variant="ghost" size="icon" className="shrink-0" title="Dashboard">
-                  <LayoutDashboard className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" title="Dashboard">
+                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
             </div>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">Contest Explorer</h1>
-              <p className="text-sm text-muted-foreground">
-                Browse and subscribe to contests from all platforms
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold truncate">Contest Explorer</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                Browse & subscribe to contests
               </p>
             </div>
           </div>
@@ -78,10 +78,10 @@ const Explore = () => {
             size="sm"
             onClick={refetch}
             disabled={loading}
-            className="gap-2"
+            className="gap-1.5 shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </motion.div>
 
@@ -90,24 +90,24 @@ const Explore = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-6 space-y-4"
+          className="mb-4 sm:mb-6 space-y-3 sm:space-y-4"
         >
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search contests by name or platform..."
+                placeholder="Search contests..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-secondary/30 border-white/10"
+                className="pl-10 bg-secondary/30 border-white/10 h-9 sm:h-10 text-sm"
               />
             </div>
             <Button
               variant={showSubscribedOnly ? "hero" : "glass"}
               onClick={() => setShowSubscribedOnly(!showSubscribedOnly)}
-              className="gap-2 shrink-0"
+              className="gap-1.5 shrink-0 h-9 sm:h-10 text-xs sm:text-sm"
             >
-              <Bell className="h-4 w-4" />
+              <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {showSubscribedOnly ? "Subscribed" : "My Subscriptions"}
             </Button>
           </div>
@@ -120,9 +120,9 @@ const Explore = () => {
         </motion.div>
 
         {/* Results Count */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <Filter className="h-4 w-4" />
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 sm:gap-2">
+            <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {filteredContests.length} contest{filteredContests.length !== 1 ? "s" : ""} found
             {searchQuery && ` for "${searchQuery}"`}
           </p>
@@ -172,7 +172,7 @@ const Explore = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
           >
             {filteredContests.map((contest, index) => (
               <motion.div
