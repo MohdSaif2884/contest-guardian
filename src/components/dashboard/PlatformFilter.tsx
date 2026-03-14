@@ -49,7 +49,7 @@ const PlatformButton = ({
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
     className={cn(
-      "relative flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
+      "relative flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all shrink-0",
       isSelected
         ? "bg-gradient-to-r text-white shadow-lg"
         : "glass-card hover:bg-secondary/50"
@@ -63,10 +63,10 @@ const PlatformButton = ({
         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
       />
     )}
-    <span className="relative z-10 flex items-center gap-1.5">
+    <span className="relative z-10 flex items-center gap-1 sm:gap-1.5">
       <span
         className={cn(
-          "w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold",
+          "w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-[9px] sm:text-[10px] font-bold",
           isSelected
             ? "bg-white/20"
             : `bg-gradient-to-br ${platform.color} text-white`
@@ -80,7 +80,7 @@ const PlatformButton = ({
       {count > 0 && (
         <span
           className={cn(
-            "px-1.5 py-0.5 rounded-full text-xs",
+            "px-1 py-0.5 rounded-full text-[10px] sm:text-xs",
             isSelected ? "bg-white/20" : "bg-muted"
           )}
         >
