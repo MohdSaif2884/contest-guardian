@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-// import { lovable } from "@/integrations/lovable/index"; // lovable package handles dynamically
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";\nimport { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -29,9 +27,7 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {\n        redirectTo: `${window.location.origin}/reset-password`,\n      });
       if (error) {
         toast.error(error.message);
       } else {
@@ -74,21 +70,7 @@ const Auth = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (error) {
-        toast.error(error.message || "Google sign-in failed");
-      }
-    } catch (err) {
-      toast.error("Google sign-in failed");
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+  const handleGoogleSignIn = async () => {\n    setGoogleLoading(true);\n    try {\n      const { error } = await supabase.auth.signInWithOAuth({\n        provider: 'google',\n        options: {\n          redirectTo: `${window.location.origin}/auth`,\n        },\n      });\n      if (error) {\n        toast.error(error.message || "Google sign-in failed");\n      }\n    } catch (err: any) {\n      toast.error(err.message || "Google sign-in failed");\n    } finally {\n      setGoogleLoading(false);\n    }\n  };
 
   return (
     <div className="min-h-screen bg-background dark flex items-center justify-center p-4">
