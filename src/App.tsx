@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Explore from "./pages/Explore";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { initializeNativeApp, createNotificationChannel } from "./lib/capacitor";
@@ -59,6 +60,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Explore />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 }
               />

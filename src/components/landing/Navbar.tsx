@@ -1,17 +1,43 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Menu, X } from "lucide-react";
+import { Bell, Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const navLinks = [
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const publicLinks = [
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
     { name: "Contests", href: "/explore" },
   ];
+
+  const authLinks = [
+    { name: "Home", href: "/" },
+    { name: "Contest Explorer", href: "/explore" },
+    { name: "Profile", href: "/profile" },
+  ];
+
+  const navLinks = user ? authLinks : publicLinks;
+
+  const avatarUrl = user?.user_metadata?.avatar_url || "";
+  const fullName = user?.user_metadata?.full_name || "User";
+  const initials = fullName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <motion.nav
@@ -32,29 +58,58 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                {link.name}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.href.startsWith("#") ? (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {link.name}
+                </a>
+              ) : (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {link.name}
+                </Link>
+              )
+            )}
           </div>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button variant="hero" size="sm">
-                Get Started Free
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/profile">
+                  <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/50 transition-all">
+                    <AvatarImage src={avatarUrl} alt={fullName} />
+                    <AvatarFallback className="text-xs bg-primary/20 text-primary">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="hero" size="sm">
+                    Get Started Free
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -77,27 +132,47 @@ const Navbar = () => {
             className="md:hidden border-t border-white/5 bg-background/95 backdrop-blur-xl"
           >
             <div className="container mx-auto px-4 py-4 space-y-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {link.name}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                link.href.startsWith("#") ? (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                )
+              )}
               <div className="pt-4 space-y-2">
-                <Link to="/dashboard" className="block">
-                  <Button variant="ghost" className="w-full">
-                    Sign In
+                {user ? (
+                  <Button variant="ghost" className="w-full gap-2" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4" />
+                    Logout
                   </Button>
-                </Link>
-                <Link to="/dashboard" className="block">
-                  <Button variant="hero" className="w-full">
-                    Get Started Free
-                  </Button>
-                </Link>
+                ) : (
+                  <>
+                    <Link to="/auth" className="block">
+                      <Button variant="ghost" className="w-full">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/auth" className="block">
+                      <Button variant="hero" className="w-full">
+                        Get Started Free
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
